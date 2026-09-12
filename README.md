@@ -9,6 +9,7 @@
 >    - **Highlights**: Live Teams chat listener (`@DeccanAgent`), **real Atlassian Jira Cloud integration** (34 issues moved to Done in active sprint), **live GitHub PR lifecycle & merging** ([PR #1 Merged](https://github.com/oxidebits/Deccan-Agents/pull/1)), Exa AI neural search grounding, and Svelte 5 Webshop code synthesis.
 > 
 > 2. ⚡ **Slack & Outgoing Webhook Enterprise Bridge (`main` branch — current)**:
+>    - **Video Demo**: 🎥 [Watch Slack `/relay` Agent Demo](https://youtu.be/LgtUUHFK5Vk)
 >    - **Highlights**: Slack slash command (`/relay`), HMAC-signed webhook validation for enterprise Teams channels, OpenRouter two-tier model routing (Llama 3.3 70B triage + DeepSeek R1 review), and local patch testing.
 > 
 > 👉 *Switch to the [`microsoft-teams`](https://github.com/oxidebits/Deccan-Agents/tree/microsoft-teams) branch to view the live Teams agent, full Jira board evidence (34 tickets done), and merged GitHub PRs.*
@@ -16,6 +17,13 @@
 ContextBridge Enterprise is the hackathon prototype behind Deccan Agents. **Relay** is its autonomous engineering coworker, invoked by an `@mention` in Microsoft Teams or a Slack command. Relay turns a plain-language request into an auditable demo run that extracts requirements, produces a simulated Jira issue, applies a constrained code change, runs tests, and optionally creates a real GitHub draft pull request.
 
 The prototype is deliberately demo-safe. It uses live Teams, OpenRouter, and GitHub only when configured, and reports simulated or fallback work truthfully rather than claiming a remote action occurred.
+
+## 📺 Demo Video: Slack Agent (`/relay`) in Action
+
+[![Watch the Slack Agent Demo](https://img.youtube.com/vi/LgtUUHFK5Vk/hqdefault.jpg)](https://youtu.be/LgtUUHFK5Vk)
+
+> 🎥 **Watch Live Video Walkthrough**: [https://youtu.be/LgtUUHFK5Vk](https://youtu.be/LgtUUHFK5Vk)  
+> *Demonstrating Relay invoked in Slack via `/relay`, performing automated engineering requirement triage, code modification in the demo repo, automated tests, and GitHub draft pull request publishing.*
 
 ## Demo in one minute
 
@@ -129,6 +137,8 @@ https://YOUR-NGROK-DOMAIN.ngrok.app/webhook
 Teams displays the HMAC key once during creation; copy it immediately into `TEAMS_HMAC_SECRET`, restart Uvicorn, and mention `@Relay` in a channel. The service uses the raw request body plus this key to validate the `Authorization: HMAC ...` signature. Teams’ current outgoing-webhook guidance confirms that callbacks must be HTTPS, are team-scoped, and have a five-second synchronous response window. [Microsoft Teams documentation](https://learn.microsoft.com/en-us/microsoftteams/platform/webhooks-and-connectors/how-to/add-outgoing-webhook)
 
 ### Slack fast path: personal workspace compatible
+
+> 🎥 **Live Demo Recording**: Watch the [YouTube Walkthrough](https://youtu.be/LgtUUHFK5Vk) demonstrating the Slack `/relay` slash command triggering Relay in real time.
 
 Slack is the faster fallback when a Microsoft 365 tenant cannot create a Team. Use a Slack slash command rather than an app mention: it gives this prototype a signed, public callback and an immediate in-channel acknowledgement without requiring a bot token.
 
