@@ -7,6 +7,19 @@
 
 ## Log Entries
 
+### [2026-09-12 16:15] — GitHub PAT Permissions Diagnosis & Bridge Process Restart Check
+- **Goal:** Diagnose GitHub PR creation permissions for `github_pat_11BH...` and address the stalled bridge process.
+- **Files Touched:**
+  - [EXECUTION_LOG.md](file:///Users/gaikwad/Desktop/openai-global/EXECUTION_LOG.md) (updated)
+- **Key Decisions & Findings:**
+  - Confirmed repository `oxidebits/Deccan-Agents` is already linked in `.env`.
+  - Tested GitHub REST API branch creation with active PAT: returned HTTP 403 (`Resource not accessible by personal access token`). Diagnosed that fine-grained PAT requires `Contents: Read and write` and `Pull requests: Read and write` permissions to open PRs via API.
+  - Noted that the user's terminal has been running an un-restarted 16-minute bridge process, preventing updated code execution.
+- **Verification:** Empirically verified GitHub API responses via Python requests test script.
+- **Commit:** `docs: diagnose GitHub PAT permissions and document retry steps`
+
+---
+
 ### [2026-09-12 15:52] — Browser Session Cookie Diagnosis & One-Time Sign-In Clarification
 - **Goal:** Diagnose why `@DeccanAgent` message wasn't picked up by the running Playwright bridge process.
 - **Files Touched:**
