@@ -83,7 +83,7 @@ class ContextBridgeService:
     def _pull_request_body(specification: dict[str, Any], review: dict[str, Any]) -> str:
         criteria = "\n".join(f"- {item}" for item in specification["acceptance_criteria"])
         checks = "\n".join(f"- {item}" for item in review.get("checks", []))
-        return f"""## ContextBridge generated demo patch
+        return f"""## Relay-generated demo patch
 
 {specification["description"]}
 
@@ -93,7 +93,7 @@ class ContextBridgeService:
 ### Peer review
 {checks}
 
-This is a draft PR created by the ContextBridge Enterprise prototype.
+This is a draft PR created by Relay, the ContextBridge Enterprise prototype agent.
 """
 
 

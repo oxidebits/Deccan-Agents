@@ -26,10 +26,10 @@ class CodexLocalRunner:
             self._write(self.target_dir / "app.py", self._baseline_application())
             self._write(self.target_dir / "tests" / "test_app.py", self._baseline_tests())
             self._run_git("init", "-b", "main")
-            self._run_git("config", "user.email", "contextbridge-demo@example.invalid")
-            self._run_git("config", "user.name", "ContextBridge Demo")
+            self._run_git("config", "user.email", "relay-demo@example.invalid")
+            self._run_git("config", "user.name", "Relay Demo")
             self._run_git("add", "app.py", "tests/test_app.py")
-            self._run_git("commit", "-m", "Initialize ContextBridge mock application")
+            self._run_git("commit", "-m", "Initialize Relay mock application")
         else:
             # mock_repo is disposable demo state. Each run starts from its committed baseline.
             self._run_git("checkout", "-f", "main")
@@ -61,7 +61,7 @@ class CodexLocalRunner:
         return ValidationResult(True, "\n".join(outputs).strip())
 
     def create_run_branch(self, run_id: str) -> str:
-        branch = f"contextbridge/demo-{run_id[:8]}"
+        branch = f"relay/demo-{run_id[:8]}"
         self._run_git("checkout", "-b", branch)
         self._run_git("add", "app.py", "tests/test_app.py")
         status = subprocess.run(

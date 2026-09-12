@@ -74,7 +74,7 @@ def slack_result_text(run: dict[str, object]) -> str:
     tests = result.get("tests") if isinstance(result.get("tests"), dict) else {}
     jira = result.get("jira") if isinstance(result.get("jira"), dict) else {}
     github = result.get("github") if isinstance(result.get("github"), dict) else {}
-    lines = [f"🤖 *ContextBridge run: {run['status']}*"]
+    lines = [f"🤖 *Relay run: {run['status']}*"]
     if jira:
         lines.append(f"• Jira: `{jira.get('key', 'not created')}` ({jira.get('mode', 'unknown')})")
     lines.append(f"• Validation: {'passed' if tests.get('passed') else 'failed'}")
@@ -127,7 +127,7 @@ async def handle_teams_webhook(request: Request, background_tasks: BackgroundTas
         {
             "type": "message",
             "text": (
-                "🤖 ContextBridge accepted this request and started a background run. "
+                "🤖 Relay accepted this request and started a background run. "
                 f"Demo status: {status_url(run_id)}"
             ),
         }
@@ -156,7 +156,7 @@ async def handle_slack_command(request: Request, background_tasks: BackgroundTas
         {
             "response_type": "in_channel",
             "text": (
-                "🤖 ContextBridge accepted this request and started a background run. "
+                "🤖 Relay accepted this request and started a background run. "
                 f"Live status: {status_url(run_id)}"
             ),
         }
@@ -187,5 +187,5 @@ def view_run(run_id: str) -> HTMLResponse:
     rendered = html.escape(__import__("json").dumps(run, indent=2))
     return HTMLResponse(
         f"<html><body style='font-family:ui-monospace,monospace;max-width:980px;margin:40px auto'>"
-        f"<h1>ContextBridge run {html.escape(run_id)}</h1><pre>{rendered}</pre></body></html>"
+        f"<h1>Relay run {html.escape(run_id)}</h1><pre>{rendered}</pre></body></html>"
     )

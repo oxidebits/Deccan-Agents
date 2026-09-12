@@ -1,17 +1,17 @@
 # Deccan Agents — ContextBridge Enterprise
 
-ContextBridge Enterprise is the hackathon prototype behind Deccan Agents: an autonomous engineering coworker invoked by an `@mention` in Microsoft Teams. It turns a plain-language request into an auditable demo run that extracts requirements, produces a simulated Jira issue, applies a constrained code change, runs tests, and optionally creates a real GitHub draft pull request.
+ContextBridge Enterprise is the hackathon prototype behind Deccan Agents. **Relay** is its autonomous engineering coworker, invoked by an `@mention` in Microsoft Teams or a Slack command. Relay turns a plain-language request into an auditable demo run that extracts requirements, produces a simulated Jira issue, applies a constrained code change, runs tests, and optionally creates a real GitHub draft pull request.
 
 The prototype is deliberately demo-safe. It uses live Teams, OpenRouter, and GitHub only when configured, and reports simulated or fallback work truthfully rather than claiming a remote action occurred.
 
 ## Demo in one minute
 
-1. A teammate mentions the ContextBridge outgoing webhook in a Teams channel with an engineering request.
+1. A teammate mentions Relay in a Teams channel, or invokes Relay from Slack, with an engineering request.
 2. Teams validates the public HTTPS callback and sends an HMAC-signed request to `POST /webhook`.
-3. ContextBridge validates the signature and returns an acknowledgement immediately. Teams requires this response within five seconds.
+3. Relay validates the signature and returns an acknowledgement immediately. Teams requires this response within five seconds.
 4. A background run performs two model stages: Tier 1 requirement triage and Tier 2 peer review. In `MOCK` mode, or after a model failure, deterministic fixtures are used and the run is marked accordingly.
 5. The agent records a clearly simulated Jira-style ticket (`PROJ-901`), then applies the fixed demo change: `GET /premium` accepts only `Authorization: Bearer <DEMO_PREMIUM_TOKEN>`.
-6. It compiles and unit-tests the disposable `mock_repo`, creates a unique local `contextbridge/demo-<run-id>` branch, and optionally opens a real **draft** PR in a dedicated demo repository.
+6. It compiles and unit-tests the disposable `mock_repo`, creates a unique local `relay/demo-<run-id>` branch, and optionally opens a real **draft** PR in a dedicated demo repository.
 7. Presenters or collaborators open the public run-status link returned to Teams to inspect the result, provider sources, test output, and PR URL.
 
 ## What is live versus simulated
@@ -107,19 +107,19 @@ ALLOW_UNSIGNED_WEBHOOKS=false
 PUBLIC_BASE_URL=https://YOUR-NGROK-DOMAIN.ngrok.app
 ```
 
-In the target Team, open **Manage team → Apps → Create an outgoing webhook**. Name it `ContextBridge`, set its callback to:
+In the target Team, open **Manage team → Apps → Create an outgoing webhook**. Name it `Relay`, set its callback to:
 
 ```text
 https://YOUR-NGROK-DOMAIN.ngrok.app/webhook
 ```
 
-Teams displays the HMAC key once during creation; copy it immediately into `TEAMS_HMAC_SECRET`, restart Uvicorn, and mention `@ContextBridge` in a channel. The service uses the raw request body plus this key to validate the `Authorization: HMAC ...` signature. Teams’ current outgoing-webhook guidance confirms that callbacks must be HTTPS, are team-scoped, and have a five-second synchronous response window. [Microsoft Teams documentation](https://learn.microsoft.com/en-us/microsoftteams/platform/webhooks-and-connectors/how-to/add-outgoing-webhook)
+Teams displays the HMAC key once during creation; copy it immediately into `TEAMS_HMAC_SECRET`, restart Uvicorn, and mention `@Relay` in a channel. The service uses the raw request body plus this key to validate the `Authorization: HMAC ...` signature. Teams’ current outgoing-webhook guidance confirms that callbacks must be HTTPS, are team-scoped, and have a five-second synchronous response window. [Microsoft Teams documentation](https://learn.microsoft.com/en-us/microsoftteams/platform/webhooks-and-connectors/how-to/add-outgoing-webhook)
 
 ### Slack fast path: personal workspace compatible
 
 Slack is the faster fallback when a Microsoft 365 tenant cannot create a Team. Use a Slack slash command rather than an app mention: it gives this prototype a signed, public callback and an immediate in-channel acknowledgement without requiring a bot token.
 
-1. Create or open a free Slack workspace where you are an owner, then visit [Slack API Apps](https://api.slack.com/apps) and select **Create New App → From scratch**. Name it `ContextBridge` and select that workspace.
+1. Create or open a free Slack workspace where you are an owner, then visit [Slack API Apps](https://api.slack.com/apps) and select **Create New App → From scratch**. Name it `Relay` and select that workspace.
 2. In **Basic Information → App Credentials**, copy the **Signing Secret** into `.env`:
 
    ```dotenv
@@ -127,14 +127,14 @@ Slack is the faster fallback when a Microsoft 365 tenant cannot create a Team. U
    ```
 
 3. In **Slash Commands**, select **Create New Command** and enter:
-   - Command: `/contextbridge`
+   - Command: `/relay`
    - Request URL: `https://YOUR-NGROK-DOMAIN.ngrok.app/slack/command`
    - Short description: `Turn an engineering request into a validated draft PR`
    - Usage hint: `describe the requested engineering change`
 4. Select **Install App** and install it to that workspace. Restart Uvicorn after saving `.env`.
-5. In any workspace channel, run `/contextbridge Add premium subscription validation and run tests`.
+5. In any workspace channel, run `/relay Add premium subscription validation and run tests`.
 
-Slack signs each slash-command request; ContextBridge validates the timestamp and `X-Slack-Signature`, acknowledges it immediately, then uses Slack's temporary `response_url` to replace that acknowledgement with the final run/PR summary. [Slack request-signing guide](https://api.slack.com/docs/verifying-requests-from-slack), [slash-command guide](https://api.slack.com/tutorials/your-first-slash-command)
+Slack signs each slash-command request; Relay validates the timestamp and `X-Slack-Signature`, acknowledges it immediately, then uses Slack's temporary `response_url` to replace that acknowledgement with the final run/PR summary. [Slack request-signing guide](https://api.slack.com/docs/verifying-requests-from-slack), [slash-command guide](https://api.slack.com/tutorials/your-first-slash-command)
 
 ### 3. OpenRouter models
 
@@ -164,7 +164,7 @@ GITHUB_REPOSITORY=YOUR_ACCOUNT/contextbridge-demo
 GITHUB_BASE_BRANCH=main
 ```
 
-The app creates a draft PR on a unique `contextbridge/demo-<run-id>` branch and never pushes directly to `main`. [GitHub token guide](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens)
+The app creates a draft PR on a unique `relay/demo-<run-id>` branch and never pushes directly to `main`. [GitHub token guide](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens)
 
 ### 5. Launch and validate
 
@@ -175,7 +175,7 @@ source .venv/bin/activate
 uvicorn app.main:app --host 0.0.0.0 --port 8000
 ```
 
-Run one `@ContextBridge` request in Teams. The initial Teams reply contains the public status-page URL. Verify that the page shows:
+Run one `@Relay` request in Teams, or `/relay` in Slack. The initial reply contains the public status-page URL. Verify that the page shows:
 
 - a verified request and a terminal status of `succeeded` or an explicit `degraded` fallback;
 - `tests.passed: true`;

@@ -1,4 +1,4 @@
 {
   "channel_id": "engineering-sprint-chat",
-  "transcript": "Client: We urgently need a premium subscription validation check endpoint added to our core router to prevent unauthenticated access. PM: Understood, let's bump this up to priority P0. @Senior_Engineer can you deploy a patch today? Engineer: @ContextBridge take over this request, extract the specs, run tests, and open the PR."
+  "transcript": "Client: We urgently need a premium subscription validation check endpoint added to our core router to prevent unauthenticated access. PM: Understood, let's bump this up to priority P0. @Senior_Engineer can you deploy a patch today? Engineer: @Relay take over this request, extract the specs, run tests, and open the PR."
 }
