@@ -6,6 +6,11 @@
 **Connected Platforms:** Microsoft Teams · GitHub · Atlassian Jira Cloud  
 **Hackathon Sponsor Stack:** OpenAI (`gpt-4o` + Structured Outputs) · Trigger.dev v3 (Durable Async Jobs) · Exa AI (Neural Tech Search) · CopilotKit · Model Context Protocol (FastMCP) · LangGraph & LangSmith
 
+> [!NOTE]
+> **Multi-Platform Architecture Notice**:
+> - 🤖 **Microsoft Teams + Jira + GitHub (`microsoft-teams` branch — current)**: Autonomous AI coworker (`@DeccanAgent`) with live Atlassian Jira Cloud sprint automation (34 tickets shipped), live GitHub PR lifecycle & merging ([PR #1 Merged](https://github.com/oxidebits/Deccan-Agents/pull/1)), Exa AI search grounding, and Svelte 5 Webshop code generation.
+> - ⚡ **Slack & Outgoing Webhook Enterprise Bridge (`main` branch)**: Explore the complementary Slack slash-command (`/relay`) & HMAC webhook integration on the [`main`](https://github.com/oxidebits/Deccan-Agents/tree/main) branch. Both implementations are 100% verified!
+
 ---
 
 ## 🌟 The Core Thesis: "An Agent for All"

@@ -7,6 +7,24 @@
 
 ## Log Entries
 
+### [2026-09-12 18:15] — Multi-Branch Documentation & Cross-Platform Visibility
+- **Goal:** Update the `README.md` on `main` branch with a prominent, clear notice and direct URL linking to `microsoft-teams` branch, ensuring visitors immediately see that both Slack (`main`) and Microsoft Teams (`microsoft-teams`) implementations are complete and production-verified.
+- **Files Touched:**
+  - `README.md` on `main` branch (added multi-platform notice banner, direct link to `https://github.com/oxidebits/Deccan-Agents/tree/microsoft-teams`, and updated capability table cross-references)
+  - `README.md` on `microsoft-teams` branch (added symmetrical cross-reference linking to `main` branch)
+  - `EXECUTION_LOG.md` (updated)
+- **Key Decisions & Findings:**
+  - Switched cleanly to `main`, aligned to `origin/main` without affecting teammate's Slack implementation.
+  - Formatted a clear callout on `main` highlighting both implementations:
+    1. Teams branch: Live `@DeccanAgent` Teams listener, real Atlassian Jira Cloud (34 tickets done), live GitHub PRs & merging, and Svelte 5 Webshop code generation.
+    2. Main branch: Slack slash command (`/relay`), HMAC webhook verification, and OpenRouter tiered routing.
+  - Committed on `main` (`876d78c`) and pushed cleanly to `origin/main`.
+  - Switched back to `microsoft-teams` branch, preserving isolated workspace integrity.
+- **Verification:** Verified push to `origin/main` (commit `876d78c`) succeeded with HTTP 200, and `microsoft-teams` branch remains clean and active.
+- **Commit:** `docs: add notice and direct link to microsoft-teams branch implementation`
+
+---
+
 ### [2026-09-12 18:09] — Jira Live Screenshot Integration & Business Impact Documentation
 - **Goal:** Incorporate user-provided live Jira board screenshot showing 34 completed agent tickets into `README.md` and repository artifacts, accompanied by a comprehensive business POV breakdown.
 - **Files Touched:**
