@@ -5,3 +5,12 @@ __pycache__/
 .venv/
 mock_repo/
 
+.env.*
+!.env.example
+node_modules/
+dist/
+.trigger/
+*.log
+test-results/
+playwright-report/
+*.zip
