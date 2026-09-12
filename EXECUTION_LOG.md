@@ -7,6 +7,19 @@
 
 ## Log Entries
 
+### [2026-09-12 14:43] — Jira API Token Configuration
+- **Goal:** Configure Atlassian Jira API token in `.env`.
+- **Files Touched:**
+  - `.env` (configured JIRA_API_TOKEN)
+  - [EXECUTION_LOG.md](file:///Users/gaikwad/Desktop/openai-global/EXECUTION_LOG.md) (updated)
+- **Key Decisions:**
+  - Saved Atlassian API token to `.env` (protected by `.gitignore`).
+  - Awaiting `JIRA_SERVER` (instance URL) and `JIRA_EMAIL` to run live REST API validation.
+- **Verification:** Verified `.env` formatting and `.gitignore` safety.
+- **Commit:** `docs: record Jira API token configuration`
+
+---
+
 ### [2026-09-12 14:34] — GitHub Token Integration & Permission Verification
 - **Goal:** Configure GitHub Personal Access Token in `.env` and verify API authentication and repository permissions for `oxidebits/Deccan-Agents`.
 - **Files Touched:**
