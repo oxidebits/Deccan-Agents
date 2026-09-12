@@ -7,6 +7,19 @@
 
 ## Log Entries
 
+### [2026-09-12 15:52] — Browser Session Cookie Diagnosis & One-Time Sign-In Clarification
+- **Goal:** Diagnose why `@DeccanAgent` message wasn't picked up by the running Playwright bridge process.
+- **Files Touched:**
+  - [EXECUTION_LOG.md](file:///Users/gaikwad/Desktop/openai-global/EXECUTION_LOG.md) (updated)
+- **Key Decisions & Findings:**
+  - Queried SQLite database `.teams_browser_session/Default/Cookies` and discovered zero active session authentication tokens (`ESTSAUTH`, `skypetoken_asm`).
+  - Confirmed that Chromium runs in an isolated user directory that does not inherit Safari or Teams Desktop app credentials.
+  - Identified that the user pasted the message into their existing Teams Desktop app / Safari, while the Playwright Chromium window was waiting at the login/launcher splash screen.
+- **Verification:** SQLite cookie query confirmed unauthenticated state of the Chromium session.
+- **Commit:** `docs: diagnose unauthenticated Chromium session in Teams bridge`
+
+---
+
 ### [2026-09-12 15:48] — Teams Personal Bridge Robustness Upgrade (Deep DOM Scanner & Auto-Prompts)
 - **Goal:** Resolve silent polling in `teams_personal_bridge.py` by replacing rigid CSS selectors with a DOM TreeWalker and adding post-login navigation and prompt handling.
 - **Files Touched:**
