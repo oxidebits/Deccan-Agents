@@ -7,6 +7,19 @@
 
 ## Log Entries
 
+### [2026-09-12 14:34] — GitHub Token Integration & Permission Verification
+- **Goal:** Configure GitHub Personal Access Token in `.env` and verify API authentication and repository permissions for `oxidebits/Deccan-Agents`.
+- **Files Touched:**
+  - `.env` (configured GITHUB_TOKEN, GITHUB_REPO, GITHUB_WEBHOOK_SECRET)
+  - [EXECUTION_LOG.md](file:///Users/gaikwad/Desktop/openai-global/EXECUTION_LOG.md) (updated)
+- **Key Decisions:**
+  - Token verified against GitHub REST API (`https://api.github.com/user` $\rightarrow$ authenticated as `oxidebits`).
+  - Repository permissions verified for `oxidebits/Deccan-Agents` (`admin: true`, `push: true`, `maintain: true`).
+- **Verification:** Verified API responses via curl returning user identity and full admin/push rights.
+- **Commit:** `docs: record GitHub PAT integration and verification`
+
+---
+
 ### [2026-09-12 14:25] — Successful Remote Push via Passphrase Trigger
 - **Goal:** Execute `git push` upon explicit authorization via passphrase `"git push sayonara"` pushing only `README.md`.
 - **Files Touched:**
