@@ -7,6 +7,19 @@
 
 ## Log Entries
 
+### [2026-09-12 14:45] — Jira Email Configuration
+- **Goal:** Configure Atlassian Jira email address in `.env`.
+- **Files Touched:**
+  - `.env` (configured JIRA_EMAIL=kushalgaikwad140@gmail.com)
+  - [EXECUTION_LOG.md](file:///Users/gaikwad/Desktop/openai-global/EXECUTION_LOG.md) (updated)
+- **Key Decisions:**
+  - Configured `JIRA_EMAIL` in `.env`.
+  - Awaiting `JIRA_SERVER` URL (e.g. `https://<site-name>.atlassian.net`) to run live REST API validation.
+- **Verification:** Verified `.env` formatting.
+- **Commit:** `docs: record Jira email configuration`
+
+---
+
 ### [2026-09-12 14:43] — Jira API Token Configuration
 - **Goal:** Configure Atlassian Jira API token in `.env`.
 - **Files Touched:**
