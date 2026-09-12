@@ -48,7 +48,7 @@ mock_repo/                Generated, disposable demo repository (gitignored)
 - Python 3.11 or later
 - Git
 - An account with access to the agent repository
-- Optional for live demo: Teams, ngrok, OpenRouter, and GitHub access
+- Optional for live demo: a Microsoft Teams **work or school** account with an organization-backed Team (Teams Free Communities and group chats do not support outgoing webhooks), ngrok, OpenRouter, and GitHub access
 
 ### Install and run
 
@@ -95,6 +95,8 @@ ngrok http 8000
 Keep the tunnel running and copy its `https://...ngrok...` forwarding URL. Use that exact URL in `PUBLIC_BASE_URL`, with no trailing slash.
 
 ### 2. Microsoft Teams outgoing webhook
+
+This integration requires an organization-backed Team in Microsoft Teams work or school. It cannot be configured from Teams Free's **Communities** view or from a group chat. Switch to a work or school account from the profile menu, then open a channel in a Team where you are an owner.
 
 Start the server with HMAC enforcement enabled after putting the HMAC value in `.env`:
 
