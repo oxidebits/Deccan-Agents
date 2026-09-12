@@ -21,9 +21,18 @@ from src.agent.nodes_pm import (
 )
 
 def route_workflow_mode(state: DeccanAgentState) -> str:
-    """Routes initial execution based on whether the task is a Dev Feature or an Agile PM Initiative."""
-    mode = state.get("workflow_mode")
-    if mode == "PM_AGILE":
+    """Intelligently routes @DeccanAgent prompts between Developer and Agile PM modes."""
+    explicit_mode = state.get("workflow_mode")
+    if explicit_mode == "PM_AGILE":
+        return "decompose_initiative_to_epic"
+    if explicit_mode == "DEV_HOLIDAY":
+        return "plan_and_ground_feature"
+
+    # Analyze prompt intent for unified @DeccanAgent invocations
+    prompt = state.get("user_prompt", "").lower().replace("@deccanagent", "").strip()
+    pm_keywords = ["epic", "sprint", "backlog", "initiative", "stories", "estimate", "story points", "acceptance criteria"]
+    
+    if any(k in prompt for k in pm_keywords) and not any(dev_k in prompt for dev_k in ["implement", "code", "bug", "pr", "pull request", "build"]):
         return "decompose_initiative_to_epic"
     return "plan_and_ground_feature"
 

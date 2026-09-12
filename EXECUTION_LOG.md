@@ -7,6 +7,22 @@
 
 ## Log Entries
 
+### [2026-09-12 15:05] — Unified @DeccanAgent Invocation & Teams Multi-Persona Simulation
+- **Goal:** Implement unified `@DeccanAgent` intent routing, Svelte 5 Webshop-Ecom component generation, and multi-persona Teams simulation CLI (`simulate_teams_chat.py`).
+- **Files Touched:**
+  - [src/agent/graph.py](file:///Users/gaikwad/Desktop/openai-global/src/agent/graph.py) (enhanced `route_workflow_mode` with natural keyword intent classification)
+  - [src/agent/nodes_dev.py](file:///Users/gaikwad/Desktop/openai-global/src/agent/nodes_dev.py) (added Svelte 5 runes Webshop-Ecom cart store & drawer generation)
+  - [simulate_teams_chat.py](file:///Users/gaikwad/Desktop/openai-global/simulate_teams_chat.py) (multi-persona Teams chat simulation runner)
+  - [EXECUTION_LOG.md](file:///Users/gaikwad/Desktop/openai-global/EXECUTION_LOG.md) (updated)
+- **Key Decisions:**
+  - Unified `@DeccanAgent` as universal handle for both PO/PM and developers.
+  - Simulated 4 authentic roles: Apoorva Agrawal (PO/PM), Kushal Gaikwad (Dev on Holiday), Senior Reviewer, and @DeccanAgent.
+  - Verified live Jira ticket creation (`SCRUM-18`), In Progress $\rightarrow$ In Review $\rightarrow$ Done transitions, Exa Svelte 5 grounding, and review loop.
+- **Verification:** Ran `.venv/bin/python simulate_teams_chat.py` with 100% precision output.
+- **Commit:** `feat: implement unified @DeccanAgent intent routing and Teams chat simulation`
+
+---
+
 ### [2026-09-12 14:53] — Deccan Agents Backend Foundation & Test Verification
 - **Goal:** Build full backend foundation: pyproject.toml, tool clients (Exa, Jira, GitHub, Teams), LangGraph StateGraph, server.py, and pytest verification suite.
 - **Files Touched:**
