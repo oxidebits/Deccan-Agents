@@ -50,7 +50,7 @@ class GitHubPublisher:
     ) -> PullRequestResult:
         repository = self.settings.github_repository
         base = self.settings.github_base_branch
-        base_ref = self._request("GET", f"/repos/{repository}/git/ref/heads/{base}")
+        base_ref = self._base_branch_ref(repository, base)
         base_sha = base_ref["object"]["sha"]
         base_commit = self._request("GET", f"/repos/{repository}/git/commits/{base_sha}")
         app_blob = self._request(
@@ -101,6 +101,27 @@ class GitHubPublisher:
         return PullRequestResult(
             mode="live", branch=branch, url=pull_request["html_url"], detail="Draft PR created."
         )
+
+    def _base_branch_ref(self, repository: str, base: str) -> dict[str, Any]:
+        try:
+            return self._request("GET", f"/repos/{repository}/git/ref/heads/{base}")
+        except requests.HTTPError as error:
+            if error.response is None or error.response.status_code != 409:
+                raise
+            # A newly created GitHub repository has no commit or branch ref yet.
+            # Create a harmless README to establish the configured base branch.
+            self._request(
+                "PUT",
+                f"/repos/{repository}/contents/README.md",
+                {
+                    "message": "Initialize Relay demo repository",
+                    "content": base64.b64encode(
+                        b"# Relay demo repository\n\nDisposable target for ContextBridge Enterprise draft PRs.\n"
+                    ).decode(),
+                    "branch": base,
+                },
+            )
+            return self._request("GET", f"/repos/{repository}/git/ref/heads/{base}")
 
     def _request(self, method: str, path: str, payload: dict[str, Any] | None = None) -> dict[str, Any]:
         response = requests.request(
