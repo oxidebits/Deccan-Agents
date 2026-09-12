@@ -7,6 +7,17 @@
 
 ## Log Entries
 
+### [2026-09-12 16:36] — Live User Testing Procedures & Interactive Execution
+- **Goal:** Provide exact, actionable instructions for the user to test the verified Deccan Agents system live in Teams or via instant CLI.
+- **Files Touched:**
+  - [EXECUTION_LOG.md](file:///Users/gaikwad/Desktop/openai-global/EXECUTION_LOG.md) (updated)
+- **Key Decisions & Findings:**
+  - Structured two clear testing pathways: Pathway A (Live in Teams via Playwright bridge with one-time Chromium login) and Pathway B (Instant 15-second terminal test with live Jira ticket and GitHub PR creation).
+- **Verification:** All GitHub, Jira, and LangGraph APIs verified in production.
+- **Commit:** `docs: document exact live testing procedures for user`
+
+---
+
 ### [2026-09-12 16:32] — Live GitHub PR Creation, Code Push & Merge Breakthrough
 - **Goal:** Validate end-to-end agent code synthesis, remote branch creation, live GitHub PR opening, and merge execution with new PAT `openai-global-hack`.
 - **Files Touched:**
