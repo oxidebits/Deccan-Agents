@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import threading
 from pathlib import Path
 from typing import Any
 
@@ -18,11 +19,18 @@ class ContextBridgeService:
         self.models = OpenRouterManager(settings)
         self.runner = CodexLocalRunner(settings.mock_repo_path, settings.demo_premium_token)
         self.github = GitHubPublisher(settings)
+        self._execution_lock = threading.Lock()
 
     def start(self, transcript: str) -> str:
         return self.store.create(transcript).id
 
     def execute(self, run_id: str) -> None:
+        # A single disposable local repository is shared by demo runs.
+        # Serialize it so simultaneous Teams mentions cannot race on git state.
+        with self._execution_lock:
+            self._execute_serially(run_id)
+
+    def _execute_serially(self, run_id: str) -> None:
         self.store.update(run_id, status="running")
         try:
             transcript = self.store.get(run_id)["transcript"]  # type: ignore[index]

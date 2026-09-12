@@ -21,15 +21,18 @@ class CodexLocalRunner:
         self.premium_token = premium_token
 
     def prepare_repository(self) -> None:
-        (self.target_dir / "tests").mkdir(parents=True, exist_ok=True)
-        self._write(self.target_dir / "app.py", self._baseline_application())
-        self._write(self.target_dir / "tests" / "test_app.py", self._baseline_tests())
         if not (self.target_dir / ".git").exists():
+            (self.target_dir / "tests").mkdir(parents=True, exist_ok=True)
+            self._write(self.target_dir / "app.py", self._baseline_application())
+            self._write(self.target_dir / "tests" / "test_app.py", self._baseline_tests())
             self._run_git("init", "-b", "main")
             self._run_git("config", "user.email", "contextbridge-demo@example.invalid")
             self._run_git("config", "user.name", "ContextBridge Demo")
             self._run_git("add", "app.py", "tests/test_app.py")
             self._run_git("commit", "-m", "Initialize ContextBridge mock application")
+        else:
+            # mock_repo is disposable demo state. Each run starts from its committed baseline.
+            self._run_git("checkout", "-f", "main")
 
     def apply_fixed_premium_patch(self) -> Path:
         self.prepare_repository()
@@ -59,8 +62,7 @@ class CodexLocalRunner:
 
     def create_run_branch(self, run_id: str) -> str:
         branch = f"contextbridge/demo-{run_id[:8]}"
-        self._run_git("checkout", "main")
-        self._run_git("checkout", "-B", branch)
+        self._run_git("checkout", "-b", branch)
         self._run_git("add", "app.py", "tests/test_app.py")
         status = subprocess.run(
             ["git", "status", "--porcelain"],
