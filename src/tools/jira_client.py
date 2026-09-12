@@ -49,6 +49,31 @@ def _load_mock_data() -> Dict[str, Any]:
             log(f"Error loading mock_data.json: {e}")
     return {}
 
+def assign_to_active_sprint(issue_key: str, board_id: int = 1) -> None:
+    """Assigns an issue (Task, Story) to the active sprint of the Scrum board so it renders on the board immediately."""
+    if _is_mock_mode() or not os.getenv("JIRA_API_TOKEN"):
+        return
+    server = _get_server_url()
+    headers = _get_auth_headers()
+    try:
+        res = requests.get(f"{server}/rest/agile/1.0/board/{board_id}/sprint", headers=headers, timeout=5)
+        active_sprint_id = None
+        if res.status_code == 200:
+            for sp in res.json().get("values", []):
+                if sp.get("state") == "active":
+                    active_sprint_id = sp.get("id")
+                    break
+        if active_sprint_id:
+            s_res = requests.post(
+                f"{server}/rest/agile/1.0/sprint/{active_sprint_id}/issue",
+                headers=headers,
+                json={"issues": [issue_key]},
+                timeout=5
+            )
+            log(f"Assigned {issue_key} to active sprint {active_sprint_id}: HTTP {s_res.status_code}")
+    except Exception as e:
+        log(f"Could not assign {issue_key} to active sprint: {e}")
+
 def create_jira_issue(
     summary: str,
     description: str,
@@ -104,6 +129,8 @@ def create_jira_issue(
             data = res.json()
             key = data.get("key")
             log(f"Jira issue created successfully: {key}")
+            if issue_type != "Epic":
+                assign_to_active_sprint(key)
             return {
                 "key": key,
                 "id": data.get("id"),

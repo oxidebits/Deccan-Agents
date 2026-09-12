@@ -7,6 +7,23 @@
 
 ## Log Entries
 
+### [2026-09-12 15:40] — Jira Scrum Board Sprint Population & Auto-Sprint Assignment
+- **Goal:** Resolve Jira board visibility for `SCRUM-19`, seed Webshop-Ecom active sprint with Epics, Stories, and Tasks, and automate active sprint assignment.
+- **Files Touched:**
+  - [scripts/inspect_jira_board.py](file:///Users/gaikwad/Desktop/openai-global/scripts/inspect_jira_board.py) (inspected board columns, sprints, and issues)
+  - [scripts/seed_webshop_jira.py](file:///Users/gaikwad/Desktop/openai-global/scripts/seed_webshop_jira.py) (created Epics, Stories, and assigned to active Sprint 2)
+  - [src/tools/jira_client.py](file:///Users/gaikwad/Desktop/openai-global/src/tools/jira_client.py) (added `assign_to_active_sprint()` on issue creation)
+  - [EXECUTION_LOG.md](file:///Users/gaikwad/Desktop/openai-global/EXECUTION_LOG.md) (updated)
+- **Key Decisions & Findings:**
+  - Diagnosed that on Jira Scrum boards (`/boards/1`), issues without an assigned sprint only appear in the Backlog (`/boards/1/backlog`).
+  - Moved `SCRUM-18` and `SCRUM-19` into active Sprint 2 ("SCRUM Sprint 0"), placing them visibly in the **Done** column.
+  - Created Webshop-Ecom Epics (`SCRUM-20`, `SCRUM-21`) and user stories across `To Do` (`SCRUM-22`, `SCRUM-23`), `In Progress` (`SCRUM-24`), `In Review` (`SCRUM-25`), and `Done` (`SCRUM-26`).
+  - Enhanced `jira_client.py` so all future tickets created by `@DeccanAgent` automatically assign to the board's active sprint.
+- **Verification:** Verified live via Jira Agile REST API that Sprint 2 contains 9 active issues spanning all 4 board columns.
+- **Commit:** `feat: seed Webshop-Ecom Jira board and automate active sprint assignment`
+
+---
+
 ### [2026-09-12 15:30] — Comprehensive Project State & Roadmap Synthesis
 - **Goal:** Synthesize the complete end-to-end state of Deccan Agents, documenting architecture, completed milestones, live integrations, and concrete next steps.
 - **Files Touched:**
