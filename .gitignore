@@ -13,3 +13,4 @@ playwright-report/
 *.zip
 .teams_browser_session/
 
+.DS_Store
