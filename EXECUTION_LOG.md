@@ -7,6 +7,22 @@
 
 ## Log Entries
 
+### [2026-09-12 18:24] — Slack Agent Demo Video Walkthrough Integration
+- **Goal:** Embed the official Slack agent `/relay` demo video (`https://youtu.be/LgtUUHFK5Vk`) into both repository branches (`main` and `microsoft-teams`) with high-resolution video thumbnails and descriptive captions.
+- **Files Touched:**
+  - `README.md` on `main` branch (added dedicated demo video section with thumbnail and YouTube link, plus in-line video reference in Slack fast-path instructions)
+  - `README.md` on `microsoft-teams` branch (added Live Demo Videos & Walkthroughs section with thumbnail and YouTube link, plus architecture notice link)
+  - `walkthrough.md` (appended Section 4.D with video walkthrough link and summary)
+  - `EXECUTION_LOG.md` (updated)
+- **Key Decisions & Findings:**
+  - Positioned YouTube link and preview banner prominently on `main` where the Slack slash command `/relay` is implemented.
+  - Linked the video in `microsoft-teams` to ensure cross-platform visibility of all demonstrations.
+  - Committed and pushed changes to both `origin/main` (`5144d78`) and `origin/microsoft-teams`.
+- **Verification:** Verified video link formatting and thumbnail rendering on both branch markdowns.
+- **Commit:** `docs: embed Slack agent /relay demo video walkthrough`
+
+---
+
 ### [2026-09-12 18:15] — Multi-Branch Documentation & Cross-Platform Visibility
 - **Goal:** Update the `README.md` on `main` branch with a prominent, clear notice and direct URL linking to `microsoft-teams` branch, ensuring visitors immediately see that both Slack (`main`) and Microsoft Teams (`microsoft-teams`) implementations are complete and production-verified.
 - **Files Touched:**

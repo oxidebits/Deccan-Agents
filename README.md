@@ -9,7 +9,7 @@
 > [!NOTE]
 > **Multi-Platform Architecture Notice**:
 > - 🤖 **Microsoft Teams + Jira + GitHub (`microsoft-teams` branch — current)**: Autonomous AI coworker (`@DeccanAgent`) with live Atlassian Jira Cloud sprint automation (34 tickets shipped), live GitHub PR lifecycle & merging ([PR #1 Merged](https://github.com/oxidebits/Deccan-Agents/pull/1)), Exa AI search grounding, and Svelte 5 Webshop code generation.
-> - ⚡ **Slack & Outgoing Webhook Enterprise Bridge (`main` branch)**: Explore the complementary Slack slash-command (`/relay`) & HMAC webhook integration on the [`main`](https://github.com/oxidebits/Deccan-Agents/tree/main) branch. Both implementations are 100% verified!
+> - ⚡ **Slack & Outgoing Webhook Enterprise Bridge (`main` branch)**: 🎥 **[Watch Slack `/relay` Agent Demo Video](https://youtu.be/LgtUUHFK5Vk)** · Explore the complementary Slack slash-command (`/relay`) & HMAC webhook integration on the [`main`](https://github.com/oxidebits/Deccan-Agents/tree/main) branch. Both implementations are 100% verified!
 
 ---
 
@@ -104,6 +104,19 @@ Every ticket shipped on the Jira board is backed by real, audited code in the re
 * **Synthesized Production Files:** [`src/lib/cartStore.svelte.ts`](src/lib/cartStore.svelte.ts) and [`src/components/CartDrawer.svelte`](src/components/CartDrawer.svelte).
 
 ![Live GitHub PR #1 Merged by Deccan Agent](docs/screenshots/artifacts_github_pr1.png)
+
+---
+
+## 📺 Live Demo Videos & Walkthroughs
+
+| Implementation | Platform Channel | Capabilities Demonstrated | Video Link |
+|---|---|---|---|
+| **Slack Agent (`/relay`)** | Slack (`#general` / slash command) | Natural language triage, local test runner, draft PR creation | 🎥 **[Watch Slack Demo (YouTube)](https://youtu.be/LgtUUHFK5Vk)** |
+| **Microsoft Teams (`@DeccanAgent`)** | Microsoft Teams Group Chat | Autonomous Stand-in Dev, Live Jira Cloud sync (34 issues), Live GitHub PR merge | 🎥 *Live Teams Demo Session* |
+
+[![Watch the Slack Agent Demo](https://img.youtube.com/vi/LgtUUHFK5Vk/hqdefault.jpg)](https://youtu.be/LgtUUHFK5Vk)
+
+> 🎥 **Slack Agent Walkthrough**: [https://youtu.be/LgtUUHFK5Vk](https://youtu.be/LgtUUHFK5Vk) — Demonstrating Relay invoked in Slack via `/relay`, performing automated engineering requirement triage, code modification, automated tests, and GitHub draft pull request publishing.
 
 ---
 
