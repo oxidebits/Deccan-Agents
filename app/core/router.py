@@ -97,9 +97,19 @@ class OpenRouterManager:
     @staticmethod
     def _parse_json_object(content: str) -> dict[str, Any]:
         cleaned = content.strip()
-        cleaned = re.sub(r"^```(?:json)?\\s*", "", cleaned, flags=re.IGNORECASE)
-        cleaned = re.sub(r"\\s*```$", "", cleaned).strip()
-        value = json.loads(cleaned)
+        cleaned = re.sub(r"^```(?:json)?\s*", "", cleaned, flags=re.IGNORECASE)
+        cleaned = re.sub(r"\s*```$", "", cleaned).strip()
+        try:
+            value = json.loads(cleaned)
+        except json.JSONDecodeError as error:
+            # Reasoning models may preface an otherwise valid final JSON object with text.
+            first_object = cleaned.find("{")
+            if first_object < 0:
+                raise ValueError("model did not return JSON") from error
+            try:
+                value, _ = json.JSONDecoder().raw_decode(cleaned[first_object:])
+            except json.JSONDecodeError as nested_error:
+                raise ValueError("model did not return a valid JSON object") from nested_error
         if not isinstance(value, dict):
             raise ValueError("model did not return an object")
         return value
@@ -127,4 +137,3 @@ class OpenRouterManager:
             ],
             "priority": "P0",
         }
-
