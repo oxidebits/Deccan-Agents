@@ -7,6 +7,20 @@
 
 ## Log Entries
 
+### [2026-09-12 15:48] — Teams Personal Bridge Robustness Upgrade (Deep DOM Scanner & Auto-Prompts)
+- **Goal:** Resolve silent polling in `teams_personal_bridge.py` by replacing rigid CSS selectors with a DOM TreeWalker and adding post-login navigation and prompt handling.
+- **Files Touched:**
+  - [src/tools/teams_personal_bridge.py](file:///Users/gaikwad/Desktop/openai-global/src/tools/teams_personal_bridge.py) (added deep DOM `TreeWalker` scanner, post-login `page.goto()`, and auto-clicker for 'Continue on this browser')
+  - [EXECUTION_LOG.md](file:///Users/gaikwad/Desktop/openai-global/EXECUTION_LOG.md) (updated)
+- **Key Decisions & Findings:**
+  - Identified that Teams Personal DOM does not use classic `[data-tid="chat-pane-message"]` selectors and often shows a "Continue on this browser" modal on fresh launch.
+  - Implemented client-side `TreeWalker` to scan all visible text nodes containing `@deccanagent` outside input fields.
+  - Added periodic heartbeat logs every 20 seconds so the terminal provides active progress indicators.
+- **Verification:** Upgraded `teams_personal_bridge.py` and validated syntax.
+- **Commit:** `fix: upgrade Teams Personal bridge with deep DOM scanner and prompt handling`
+
+---
+
 ### [2026-09-12 15:43] — Operational Checklist & Step-by-Step User Guidance
 - **Goal:** Provide concrete next steps, operational checklists, and exact expectations for user testing, video recording, and submission.
 - **Files Touched:**

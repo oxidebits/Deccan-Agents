@@ -10,7 +10,7 @@ import asyncio
 import logging
 import argparse
 from pathlib import Path
-from typing import Set, Optional
+from typing import Set, Optional, Dict, Any, List
 
 from playwright.async_api import async_playwright, BrowserContext, Page
 
@@ -83,10 +83,26 @@ class TeamsPersonalBridge:
             logger.error(f"Error executing agent workflow: {e}", exc_info=True)
             return f"🤖 @DeccanAgent encountered an issue: {e}"
 
+    async def handle_teams_web_prompts(self, page: Page):
+        """Auto-clicks 'Continue on this browser' or 'Use web app instead' if prompted"""
+        try:
+            web_buttons = page.locator(
+                'button:has-text("Continue on this browser"), '
+                'a:has-text("Use the web app instead"), '
+                'button:has-text("Use the web app instead"), '
+                '[data-tid="joinOnWeb"]'
+            )
+            count = await web_buttons.count()
+            if count > 0 and await web_buttons.first.is_visible():
+                logger.info("Detected Teams browser launcher prompt. Clicking 'Continue on this browser'...")
+                await web_buttons.first.click()
+                await asyncio.sleep(2.0)
+        except Exception:
+            pass
+
     async def post_reply(self, page: Page, message_text: str):
         """Find the message compose box and submit the reply"""
         logger.info("Locating Teams message compose box...")
-        # Target contenteditable div or textbox in teams.live.com
         input_selectors = [
             'div[role="textbox"]',
             'div[contenteditable="true"]',
@@ -94,6 +110,7 @@ class TeamsPersonalBridge:
             'div.ck-editor__editable',
             '[aria-label*="Type a message"]',
             '[aria-label*="Compose"]',
+            'textarea',
         ]
         
         target_input = None
@@ -104,19 +121,61 @@ class TeamsPersonalBridge:
                 break
                 
         if not target_input:
-            logger.warning("Could not find visible compose box with standard selectors. Checking any textbox...")
+            logger.warning("Could not find standard compose box. Attempting fallback textbox...")
             target_input = page.locator('div[role="textbox"]').first
 
         if target_input and await target_input.count() > 0:
             await target_input.click()
+            await asyncio.sleep(0.3)
+            try:
+                await target_input.fill(message_text)
+            except Exception:
+                await page.keyboard.type(message_text, delay=5)
+                
             await asyncio.sleep(0.5)
-            # Use fill or type
-            await target_input.fill(message_text)
-            await asyncio.sleep(0.5)
-            await target_input.press("Enter")
+            await page.keyboard.press("Enter")
+            
+            # Also check for explicit send button
+            send_btn = page.locator(
+                'button[data-tid="sendMessageButton"], '
+                'button[aria-label*="Send"], '
+                'button[title*="Send"]'
+            ).last
+            if await send_btn.count() > 0 and await send_btn.is_visible():
+                await send_btn.click()
+                
             logger.info("Successfully submitted reply to Teams chat.")
         else:
             logger.error("Failed to locate compose input box to post reply.")
+
+    async def scan_for_mentions(self, page: Page) -> List[Dict[str, str]]:
+        """Deep DOM scan for any message containing @deccanagent not inside an input box"""
+        js_code = """
+        () => {
+            const mentions = [];
+            const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+            let node;
+            while (node = walker.nextNode()) {
+                const val = (node.nodeValue || '').trim();
+                if (val.toLowerCase().includes('@deccanagent')) {
+                    const parent = node.parentElement;
+                    // Ignore text inside inputs, textareas, or compose boxes
+                    if (parent && !parent.closest('textarea, input, [contenteditable="true"], .ck-editor__editable')) {
+                        const container = parent.closest('[data-mid], [role="listitem"], [data-tid*="message"], div[class*="message"], div[class*="ChatMessage"]') || parent;
+                        const text = (container.innerText || val).trim();
+                        const id = container.getAttribute('data-mid') || container.getAttribute('id') || ('text_' + text.slice(0, 50));
+                        mentions.push({ text: text, id: id });
+                    }
+                }
+            }
+            return mentions;
+        }
+        """
+        try:
+            return await page.evaluate(js_code)
+        except Exception as e:
+            logger.debug(f"Scan evaluate error: {e}")
+            return []
 
     async def start(self):
         """Launch browser with persistent session and start chat polling loop"""
@@ -135,62 +194,68 @@ class TeamsPersonalBridge:
             logger.info(f"Navigating to Teams chat: {self.chat_url}")
             await page.goto(self.chat_url, wait_until="domcontentloaded")
             
-            # Check if login redirection occurred
+            # Check for Microsoft login page
             if "login.live.com" in page.url or "login.microsoftonline.com" in page.url:
                 print("\n" + "="*70)
                 print("🔑 [ACTION REQUIRED] Please complete sign-in in the opened browser window.")
                 print("Once you sign in, Teams Personal will load and cookies are saved for good!")
                 print("="*70 + "\n")
                 
-                # Wait for user to complete sign in and reach teams.live.com
                 try:
                     await page.wait_for_url("**/teams.live.com/**", timeout=300000)
-                    logger.info("Authentication detected! Proceeding to Teams chat...")
+                    logger.info("Authentication detected! Navigating to group chat...")
                 except Exception:
-                    logger.warning("Timed out waiting for sign-in. Retrying navigation...")
-                    await page.goto(self.chat_url)
+                    logger.warning("Timed out waiting for login. Retrying navigation...")
 
+                # Always re-navigate to group chat after authentication completes
+                await page.goto(self.chat_url, wait_until="domcontentloaded")
+                await asyncio.sleep(3.0)
+
+            # Auto-handle "Continue on this browser" prompt
+            await self.handle_teams_web_prompts(page)
+            
             logger.info("Teams Chat loaded. Starting message listener loop (Press Ctrl+C to stop)...")
             
-            # Polling loop for new chat messages
+            poll_count = 0
             while self.running:
                 try:
-                    # Look for message nodes
-                    message_locators = page.locator('[data-tid="chat-pane-message"], [data-mid], div[role="listitem"]')
-                    count = await message_locators.count()
+                    poll_count += 1
+                    await self.handle_teams_web_prompts(page)
                     
-                    for i in range(count):
-                        msg_node = message_locators.nth(i)
+                    # Deep scan for mentions
+                    mentions = await self.scan_for_mentions(page)
+                    
+                    for item in mentions:
+                        msg_id = item["id"]
+                        text = item["text"]
                         
-                        # Generate deterministic ID for the node
-                        text = await msg_node.inner_text()
-                        if not text:
-                            continue
-                            
-                        msg_id = f"msg_{i}_{hash(text)}"
                         if msg_id in self.processed_ids:
                             continue
                             
                         self.processed_ids.add(msg_id)
+                        logger.info(f"Detected new mention: '{text}'")
                         
-                        # Check if message mentions @DeccanAgent
-                        if "@deccanagent" in text.lower():
-                            logger.info(f"Detected mention: '{text.strip()}'")
+                        # Clean prompt
+                        clean_prompt = text
+                        for trigger in ["@deccanagent", "@DeccanAgent", "@Deccan Agent"]:
+                            clean_prompt = clean_prompt.replace(trigger, "")
+                        clean_prompt = clean_prompt.strip()
+                        if not clean_prompt:
+                            clean_prompt = "Implement Svelte 5 Webshop Cart Drawer with Promo Code discount"
                             
-                            # Clean prompt
-                            clean_prompt = text
-                            for trigger in ["@deccanagent", "@DeccanAgent", "@Deccan Agent"]:
-                                clean_prompt = clean_prompt.replace(trigger, "")
-                            clean_prompt = clean_prompt.strip()
-                            if not clean_prompt:
-                                clean_prompt = "Implement Svelte 5 Webshop Cart Drawer with Promo Code discount"
-                                
-                            # Execute agent workflow
-                            reply = await self.run_agent_for_message(clean_prompt)
-                            
-                            # Post back to chat
-                            await self.post_reply(page, reply)
-                            
+                        # Execute LangGraph agent workflow
+                        reply = await self.run_agent_for_message(clean_prompt)
+                        
+                        # Post reply back to Teams chat
+                        await self.post_reply(page, reply)
+                        
+                    # Heartbeat log every 10 iterations (~20s)
+                    if poll_count % 10 == 0:
+                        logger.info(
+                            f"Listening on: {page.url[:60]}... "
+                            f"(Processed mentions: {len(self.processed_ids)})"
+                        )
+                        
                     await asyncio.sleep(2.0)
                 except asyncio.CancelledError:
                     break
