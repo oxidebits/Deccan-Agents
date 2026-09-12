@@ -7,6 +7,25 @@
 
 ## Log Entries
 
+### [2026-09-12 15:18] — Azure CLI Authentication, Entra ID App Verification & Teams Package Creation
+- **Goal:** Authenticate Azure CLI with user's Safari session, verify Microsoft Entra ID app registration, and package Microsoft Teams app manifest & icons.
+- **Files Touched:**
+  - [scripts/build_teams_package.py](file:///Users/gaikwad/Desktop/openai-global/scripts/build_teams_package.py) (script to build Teams manifest, icons, and zip package)
+  - [teams_package/manifest.json](file:///Users/gaikwad/Desktop/openai-global/teams_package/manifest.json) (v1.16 Teams schema configured for DeccanAgent)
+  - [teams_package/color.png](file:///Users/gaikwad/Desktop/openai-global/teams_package/color.png) (192x192 icon)
+  - [teams_package/outline.png](file:///Users/gaikwad/Desktop/openai-global/teams_package/outline.png) (32x32 icon)
+  - [teams_package/DeccanAgent.zip](file:///Users/gaikwad/Desktop/openai-global/teams_package/DeccanAgent.zip) (bundled Teams app package)
+  - [EXECUTION_LOG.md](file:///Users/gaikwad/Desktop/openai-global/EXECUTION_LOG.md) (updated)
+- **Key Decisions & Findings:**
+  - Diagnosed that `kushalgaikwad140@gmail.com` is authenticated at the tenant level (`b0a4d0ed-edc7-40e8-b8b3-3a73ce1a0c4d`) with zero billing Azure subscriptions.
+  - Confirmed that Microsoft Teams bots do NOT require an Azure Subscription or Azure Bot Service ARM resource when sideloaded or imported via the Teams Developer Portal.
+  - Verified Entra Application `083bda2b-6397-47e8-9ce1-ebf1be5c313f` with multi-tenant sign-in audience.
+  - Pre-built `DeccanAgent.zip` containing manifest and icons for 1-click import into Teams.
+- **Verification:** Ran `az account show`, `az ad app show`, and verified `DeccanAgent.zip` package creation.
+- **Commit:** `feat: build Microsoft Teams app package and verify Azure Entra authentication`
+
+---
+
 ### [2026-09-12 15:05] — Unified @DeccanAgent Invocation & Teams Multi-Persona Simulation
 - **Goal:** Implement unified `@DeccanAgent` intent routing, Svelte 5 Webshop-Ecom component generation, and multi-persona Teams simulation CLI (`simulate_teams_chat.py`).
 - **Files Touched:**

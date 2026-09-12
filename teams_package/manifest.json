@@ -1,0 +1,47 @@
+{
+  "$schema": "https://developer.microsoft.com/en-us/json-schemas/teams/v1.16/MicrosoftTeams.schema.json",
+  "manifestVersion": "1.16",
+  "version": "1.0.0",
+  "id": "083bda2b-6397-47e8-9ce1-ebf1be5c313f",
+  "packageName": "com.deccanagent.bot",
+  "developer": {
+    "name": "Deccan Agents",
+    "websiteUrl": "https://github.com/oxidebits/Deccan-Agents",
+    "privacyUrl": "https://github.com/oxidebits/Deccan-Agents/blob/main/README.md",
+    "termsOfUseUrl": "https://github.com/oxidebits/Deccan-Agents/blob/main/README.md"
+  },
+  "icons": {
+    "color": "color.png",
+    "outline": "outline.png"
+  },
+  "name": {
+    "short": "DeccanAgent",
+    "full": "Deccan Agent - Autonomous AI Coworker"
+  },
+  "description": {
+    "short": "Autonomous AI Coworker for Jira, GitHub, and Teams",
+    "full": "Deccan Agent serves as an on-call stand-in developer and Agile PM directly in Microsoft Teams."
+  },
+  "accentColor": "#6366F1",
+  "bots": [
+    {
+      "botId": "083bda2b-6397-47e8-9ce1-ebf1be5c313f",
+      "scopes": [
+        "personal",
+        "team",
+        "groupchat"
+      ],
+      "supportsFiles": false,
+      "isNotificationOnly": false
+    }
+  ],
+  "permissions": [
+    "identity",
+    "messageTeamMembers"
+  ],
+  "validDomains": [
+    "*.ngrok-free.app",
+    "*.ngrok.io",
+    "*.loca.lt"
+  ]
+}
