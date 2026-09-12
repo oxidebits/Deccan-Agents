@@ -39,6 +39,7 @@ class Settings:
     github_token: str | None
     github_repository: str | None
     github_base_branch: str
+    slack_signing_secret: str | None
 
     @property
     def mock_repo_path(self) -> Path:
@@ -63,4 +64,5 @@ class Settings:
             github_token=os.getenv("GITHUB_TOKEN") or None,
             github_repository=os.getenv("GITHUB_REPOSITORY") or None,
             github_base_branch=os.getenv("GITHUB_BASE_BRANCH", "main"),
+            slack_signing_secret=os.getenv("SLACK_SIGNING_SECRET") or None,
         )

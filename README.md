@@ -19,6 +19,7 @@ The prototype is deliberately demo-safe. It uses live Teams, OpenRouter, and Git
 | Capability | Default | Live setup | Result label |
 | --- | --- | --- | --- |
 | Teams invocation | Off until webhook is configured | Teams outgoing webhook + ngrok URL + HMAC key | HMAC-verified request |
+| Slack invocation | Off until command is configured | Slack slash command + signing secret | HMAC-verified request |
 | OpenRouter triage/review | Fixture | `RUN_MODE=LIVE` and API key | `openrouter`, `fixture`, or `fixture-fallback` |
 | Jira ticket | Simulated | Not included in this sprint | `simulated` |
 | Code mutation and tests | Local | Always local, in disposable `mock_repo` | Test pass/fail |
@@ -113,6 +114,27 @@ https://YOUR-NGROK-DOMAIN.ngrok.app/webhook
 ```
 
 Teams displays the HMAC key once during creation; copy it immediately into `TEAMS_HMAC_SECRET`, restart Uvicorn, and mention `@ContextBridge` in a channel. The service uses the raw request body plus this key to validate the `Authorization: HMAC ...` signature. Teams’ current outgoing-webhook guidance confirms that callbacks must be HTTPS, are team-scoped, and have a five-second synchronous response window. [Microsoft Teams documentation](https://learn.microsoft.com/en-us/microsoftteams/platform/webhooks-and-connectors/how-to/add-outgoing-webhook)
+
+### Slack fast path: personal workspace compatible
+
+Slack is the faster fallback when a Microsoft 365 tenant cannot create a Team. Use a Slack slash command rather than an app mention: it gives this prototype a signed, public callback and an immediate in-channel acknowledgement without requiring a bot token.
+
+1. Create or open a free Slack workspace where you are an owner, then visit [Slack API Apps](https://api.slack.com/apps) and select **Create New App → From scratch**. Name it `ContextBridge` and select that workspace.
+2. In **Basic Information → App Credentials**, copy the **Signing Secret** into `.env`:
+
+   ```dotenv
+   SLACK_SIGNING_SECRET=YOUR_SLACK_SIGNING_SECRET
+   ```
+
+3. In **Slash Commands**, select **Create New Command** and enter:
+   - Command: `/contextbridge`
+   - Request URL: `https://YOUR-NGROK-DOMAIN.ngrok.app/slack/command`
+   - Short description: `Turn an engineering request into a validated draft PR`
+   - Usage hint: `describe the requested engineering change`
+4. Select **Install App** and install it to that workspace. Restart Uvicorn after saving `.env`.
+5. In any workspace channel, run `/contextbridge Add premium subscription validation and run tests`.
+
+Slack signs each slash-command request; ContextBridge validates the timestamp and `X-Slack-Signature`, acknowledges it immediately, then uses Slack's temporary `response_url` to replace that acknowledgement with the final run/PR summary. [Slack request-signing guide](https://api.slack.com/docs/verifying-requests-from-slack), [slash-command guide](https://api.slack.com/tutorials/your-first-slash-command)
 
 ### 3. OpenRouter models
 
