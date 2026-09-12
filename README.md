@@ -1,5 +1,18 @@
 # Deccan Agents — ContextBridge Enterprise
 
+> [!IMPORTANT]
+> ### 🌐 Multi-Platform Implementation Notice: Teams & Slack Both Completed!
+> Deccan Agents features **two verified, production-ready implementations** across dedicated branches:
+> 
+> 1. 🤖 **Microsoft Teams Autonomous Coworker (`microsoft-teams` branch)**:
+>    - **Branch URL**: [https://github.com/oxidebits/Deccan-Agents/tree/microsoft-teams](https://github.com/oxidebits/Deccan-Agents/tree/microsoft-teams)
+>    - **Highlights**: Live Teams chat listener (`@DeccanAgent`), **real Atlassian Jira Cloud integration** (34 issues moved to Done in active sprint), **live GitHub PR lifecycle & merging** ([PR #1 Merged](https://github.com/oxidebits/Deccan-Agents/pull/1)), Exa AI neural search grounding, and Svelte 5 Webshop code synthesis.
+> 
+> 2. ⚡ **Slack & Outgoing Webhook Enterprise Bridge (`main` branch — current)**:
+>    - **Highlights**: Slack slash command (`/relay`), HMAC-signed webhook validation for enterprise Teams channels, OpenRouter two-tier model routing (Llama 3.3 70B triage + DeepSeek R1 review), and local patch testing.
+> 
+> 👉 *Switch to the [`microsoft-teams`](https://github.com/oxidebits/Deccan-Agents/tree/microsoft-teams) branch to view the live Teams agent, full Jira board evidence (34 tickets done), and merged GitHub PRs.*
+
 ContextBridge Enterprise is the hackathon prototype behind Deccan Agents. **Relay** is its autonomous engineering coworker, invoked by an `@mention` in Microsoft Teams or a Slack command. Relay turns a plain-language request into an auditable demo run that extracts requirements, produces a simulated Jira issue, applies a constrained code change, runs tests, and optionally creates a real GitHub draft pull request.
 
 The prototype is deliberately demo-safe. It uses live Teams, OpenRouter, and GitHub only when configured, and reports simulated or fallback work truthfully rather than claiming a remote action occurred.
@@ -21,9 +34,9 @@ The prototype is deliberately demo-safe. It uses live Teams, OpenRouter, and Git
 | Teams invocation | Off until webhook is configured | Teams outgoing webhook + ngrok URL + HMAC key | HMAC-verified request |
 | Slack invocation | Off until command is configured | Slack slash command + signing secret | HMAC-verified request |
 | OpenRouter triage/review | Fixture | `RUN_MODE=LIVE` and API key | `openrouter`, `fixture`, or `fixture-fallback` |
-| Jira ticket | Simulated | Not included in this sprint | `simulated` |
+| Jira ticket | Simulated on `main` (Live on [`microsoft-teams`](https://github.com/oxidebits/Deccan-Agents/tree/microsoft-teams)) | Real Atlassian Cloud on `microsoft-teams` branch | `simulated` / `live` |
 | Code mutation and tests | Local | Always local, in disposable `mock_repo` | Test pass/fail |
-| GitHub PR | Simulated | Dedicated demo repository + PAT | `live`, `simulated`, or `failed` |
+| GitHub PR | Simulated on `main` (Live on [`microsoft-teams`](https://github.com/oxidebits/Deccan-Agents/tree/microsoft-teams)) | Real live PRs & merge on `microsoft-teams` branch | `live`, `simulated`, or `failed` |
 
 Never point `GITHUB_REPOSITORY` to this agent source repository. The runtime publisher creates branches and draft PRs there; use a separate, disposable `contextbridge-demo` repository.
 
