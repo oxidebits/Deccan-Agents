@@ -7,6 +7,22 @@
 
 ## Log Entries
 
+### [2026-09-12 16:47] — Platform Verification Screenshots & Live Proof Archival
+- **Goal:** Capture high-resolution proof screenshots of the live GitHub repository, merged Pull Request #1, and consolidate live evidence across Exa, Jira, and GitHub.
+- **Files Touched:**
+  - [docs/screenshots/artifacts_github_pr1.png](file:///Users/gaikwad/Desktop/openai-global/docs/screenshots/artifacts_github_pr1.png) (high-res capture of merged PR #1)
+  - [docs/screenshots/artifacts_github_pr_list.png](file:///Users/gaikwad/Desktop/openai-global/docs/screenshots/artifacts_github_pr_list.png) (capture of closed PR index)
+  - [walkthrough.md](file:///Users/gaikwad/.gemini/antigravity-ide/brain/1b53f385-86c2-408e-b37a-74b71d7ccdf2/walkthrough.md) (embedded screenshots and live dashboard spend details)
+  - [EXECUTION_LOG.md](file:///Users/gaikwad/Desktop/openai-global/EXECUTION_LOG.md) (updated)
+- **Key Decisions & Findings:**
+  - Confirmed live Exa AI consumption ($0.39 / $0.29 daily spend) on official dashboard.
+  - Captured live browser screenshots of PR #1 merged into `oxidebits/Deccan-Agents`.
+  - Documented full board state on Jira Cloud with 9 issues active in Sprint 2.
+- **Verification:** Verified images generated and saved cleanly.
+- **Commit:** `docs: archive live platform verification screenshots and evidence`
+
+---
+
 ### [2026-09-12 16:41] — Hackathon Sponsor Stack Audit & Award Track Alignment
 - **Goal:** Document the exact sponsor technologies integrated into Deccan Agents and evaluate alignment with global prize categories.
 - **Files Touched:**
