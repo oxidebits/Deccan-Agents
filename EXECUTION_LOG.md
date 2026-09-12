@@ -7,6 +7,32 @@
 
 ## Log Entries
 
+### [2026-09-12 14:53] — Deccan Agents Backend Foundation & Test Verification
+- **Goal:** Build full backend foundation: pyproject.toml, tool clients (Exa, Jira, GitHub, Teams), LangGraph StateGraph, server.py, and pytest verification suite.
+- **Files Touched:**
+  - [pyproject.toml](file:///Users/gaikwad/Desktop/openai-global/pyproject.toml) (configured dependencies & pytest pythonpath)
+  - [mock_data.json](file:///Users/gaikwad/Desktop/openai-global/mock_data.json) (dual-mode simulation fixtures)
+  - [src/tools/exa_client.py](file:///Users/gaikwad/Desktop/openai-global/src/tools/exa_client.py) (neural search grounding)
+  - [src/tools/jira_client.py](file:///Users/gaikwad/Desktop/openai-global/src/tools/jira_client.py) (live REST API v3 client)
+  - [src/tools/github_client.py](file:///Users/gaikwad/Desktop/openai-global/src/tools/github_client.py) (branching, commits, PRs, reviews)
+  - [src/tools/teams_client.py](file:///Users/gaikwad/Desktop/openai-global/src/tools/teams_client.py) (Adaptive Cards dispatcher)
+  - [src/agent/state.py](file:///Users/gaikwad/Desktop/openai-global/src/agent/state.py) (TypedDict state schema)
+  - [src/agent/nodes_dev.py](file:///Users/gaikwad/Desktop/openai-global/src/agent/nodes_dev.py) (Scenario 1 dev nodes)
+  - [src/agent/nodes_pm.py](file:///Users/gaikwad/Desktop/openai-global/src/agent/nodes_pm.py) (Scenario 2 agile PM nodes)
+  - [src/agent/graph.py](file:///Users/gaikwad/Desktop/openai-global/src/agent/graph.py) (compiled StateGraph with cyclic review loop)
+  - [server.py](file:///Users/gaikwad/Desktop/openai-global/server.py) (FastAPI webhook server + FastMCP stdio interface)
+  - [tests/test_agent_workflow.py](file:///Users/gaikwad/Desktop/openai-global/tests/test_agent_workflow.py) (automated test suite)
+  - [walkthrough.md](file:///Users/gaikwad/.gemini/antigravity-ide/brain/1b53f385-86c2-408e-b37a-74b71d7ccdf2/walkthrough.md) (created artifact)
+  - [EXECUTION_LOG.md](file:///Users/gaikwad/Desktop/openai-global/EXECUTION_LOG.md) (updated)
+- **Key Decisions:**
+  - Configured LangGraph `StateGraph` with conditional entry point routing between `DEV_HOLIDAY` and `PM_AGILE` modes.
+  - Implemented iterative code-review cycle with conditional routing on `CHANGES_REQUESTED` vs `APPROVED`.
+  - Excluded `.venv`, `.pytest_cache`, and `.env` from git tracking.
+- **Verification:** Ran `pytest tests/test_agent_workflow.py -v` (4 passed in 26.38s) and verified FastAPI status endpoint.
+- **Commit:** `feat: implement backend foundation, tools, LangGraph state machine, and tests`
+
+---
+
 ### [2026-09-12 14:46] — Jira Cloud Live API Authentication & Project Verification
 - **Goal:** Configure Jira server and project key in `.env` and verify live Atlassian Cloud REST API connectivity.
 - **Files Touched:**

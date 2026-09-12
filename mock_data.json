@@ -1,0 +1,103 @@
+{
+  "scenario_1_dev": {
+    "prompt": "Developer is on holiday. Need urgent feature: Implement JWT refresh token rotation with Redis blacklist for the auth service.",
+    "jira_issue": {
+      "key": "SCRUM-42",
+      "summary": "Implement JWT refresh token rotation with Redis blacklist",
+      "description": "As an API client, I need secure JWT refresh token rotation with a Redis-backed token blacklist to prevent replay attacks.",
+      "status": "In Progress"
+    },
+    "feature_branch": "feature/SCRUM-42-jwt-refresh-rotation",
+    "exa_grounding": [
+      {
+        "title": "OAuth 2.0 and JWT Refresh Token Best Practices 2026",
+        "url": "https://auth0.com/docs/secure/tokens/refresh-tokens/refresh-token-rotation",
+        "summary": "Refresh token rotation issues a new refresh token every time the current refresh token is exchanged. Revoked or previously used tokens must be invalidated via a Redis blacklist with TTL matching the token lifetime."
+      },
+      {
+        "title": "Redis-py Async Connection Pooling and Expiring Keys",
+        "url": "https://redis-py.readthedocs.io/en/stable/examples/connection_examples.html",
+        "summary": "Use redis.asyncio.ConnectionPool with retry_on_timeout=True and health_check_interval=30. Store blacklisted JTI hashes using SETEX with matching TTL."
+      }
+    ],
+    "code_files": [
+      {
+        "path": "auth/token_service.py",
+        "action": "CREATE",
+        "content": "import uuid\nimport time\nfrom typing import Optional\n\nclass TokenService:\n    def __init__(self, redis_client=None, ttl_seconds: int = 86400):\n        self.redis = redis_client\n        self.ttl = ttl_seconds\n        self._in_memory_blacklist = set()\n\n    def generate_token_pair(self, user_id: str) -> dict:\n        access_token = f\"access_{uuid.uuid4().hex}\"\n        refresh_token = f\"refresh_{uuid.uuid4().hex}\"\n        return {\"access_token\": access_token, \"refresh_token\": refresh_token, \"user_id\": user_id, \"created_at\": time.time()}\n\n    def revoke_refresh_token(self, refresh_token: str) -> bool:\n        if self.redis:\n            self.redis.setex(f\"blacklist:{refresh_token}\", self.ttl, \"revoked\")\n        else:\n            self._in_memory_blacklist.add(refresh_token)\n        return True\n\n    def is_token_blacklisted(self, refresh_token: str) -> bool:\n        if self.redis:\n            return bool(self.redis.exists(f\"blacklist:{refresh_token}\"))\n        return refresh_token in self._in_memory_blacklist\n\n    def rotate_refresh_token(self, old_refresh_token: str, user_id: str) -> dict:\n        if self.is_token_blacklisted(old_refresh_token):\n            raise ValueError(\"Token has been revoked or already rotated!\")\n        self.revoke_refresh_token(old_refresh_token)\n        return self.generate_token_pair(user_id)\n"
+      },
+      {
+        "path": "tests/test_token_service.py",
+        "action": "CREATE",
+        "content": "import pytest\nfrom auth.token_service import TokenService\n\ndef test_token_pair_generation():\n    service = TokenService()\n    tokens = service.generate_token_pair(\"user_123\")\n    assert \"access_token\" in tokens\n    assert \"refresh_token\" in tokens\n    assert tokens[\"user_id\"] == \"user_123\"\n\ndef test_refresh_token_rotation():\n    service = TokenService()\n    tokens1 = service.generate_token_pair(\"user_123\")\n    old_refresh = tokens1[\"refresh_token\"]\n    tokens2 = service.rotate_refresh_token(old_refresh, \"user_123\")\n    assert tokens2[\"refresh_token\"] != old_refresh\n    assert service.is_token_blacklisted(old_refresh) is True\n\ndef test_replay_attack_prevention():\n    service = TokenService()\n    tokens = service.generate_token_pair(\"user_123\")\n    old_refresh = tokens[\"refresh_token\"]\n    service.rotate_refresh_token(old_refresh, \"user_123\")\n    with pytest.raises(ValueError, match=\"Token has been revoked\"):\n        service.rotate_refresh_token(old_refresh, \"user_123\")\n"
+      }
+    ],
+    "pull_request": {
+      "number": 1,
+      "title": "feat(auth): Implement JWT refresh token rotation with Redis blacklist [SCRUM-42]",
+      "html_url": "https://github.com/oxidebits/Deccan-Agents/pull/1",
+      "status": "OPEN"
+    },
+    "review_feedback": [
+      {
+        "author": "senior-engineer",
+        "comment": "Good architecture. Please make sure TokenService supports configurable TTL and handles connection retries gracefully.",
+        "state": "CHANGES_REQUESTED"
+      },
+      {
+        "author": "senior-engineer",
+        "comment": "Changes verified. Clean functional error handling and passing unit tests. Approved!",
+        "state": "APPROVED"
+      }
+    ]
+  },
+  "scenario_2_pm": {
+    "prompt": "We are launching our Q4 Enterprise SSO and Multi-Tenant RBAC initiative. Please break this down into an Epic with technical user stories, acceptance criteria, story point estimates, and set up our Sprint backlog in Jira.",
+    "epic": {
+      "key": "SCRUM-100",
+      "summary": "Enterprise SSO & Multi-Tenant RBAC Architecture",
+      "description": "Establish enterprise identity federation (SAML 2.0 / OIDC) and tenant-isolated Role-Based Access Control to support enterprise customers in Q4."
+    },
+    "stories": [
+      {
+        "key": "SCRUM-101",
+        "summary": "SAML 2.0 and OIDC Identity Provider Federation",
+        "story_points": 5,
+        "acceptance_criteria": [
+          "Given an enterprise customer with Okta or Azure AD, when they configure SSO, then users can authenticate via SAML 2.0 / OIDC.",
+          "Given an expired SAML assertion, when user initiates session, then prompt for re-authentication."
+        ]
+      },
+      {
+        "key": "SCRUM-102",
+        "summary": "Tenant Isolation Middleware and Schema Partitioning",
+        "story_points": 8,
+        "acceptance_criteria": [
+          "Given a multi-tenant database, when an API request executes, then all SQL queries are scoped by tenant_id.",
+          "Given a cross-tenant data query attempt, when executed, then throw 403 Forbidden."
+        ]
+      },
+      {
+        "key": "SCRUM-103",
+        "summary": "Granular RBAC Permission Evaluation Engine",
+        "story_points": 5,
+        "acceptance_criteria": [
+          "Given a user role (Admin, Member, Viewer), when accessing resource endpoints, then verify against permission bitmask.",
+          "Given custom roles, when created by tenant admin, then support dynamic permission assignment."
+        ]
+      },
+      {
+        "key": "SCRUM-104",
+        "summary": "Tenant Audit Logging and Compliance Export",
+        "story_points": 3,
+        "acceptance_criteria": [
+          "Given security-sensitive operations (role change, user invite), when performed, then append immutable event to audit log.",
+          "Given a compliance request, when admin clicks export, then download signed JSONL audit report."
+        ]
+      }
+    ],
+    "dependency_links": [
+      {"inward": "SCRUM-102", "outward": "SCRUM-103", "type": "Blocks"}
+    ]
+  }
+}

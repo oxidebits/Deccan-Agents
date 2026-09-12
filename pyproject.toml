@@ -1,0 +1,33 @@
+[project]
+name = "deccan-agents"
+version = "1.0.0"
+description = "Deccan Agents: Autonomous Software Engineer & Agile Project Manager Coworker in Microsoft Teams"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "openai>=1.65.0",
+    "langgraph>=1.2.11",
+    "langchain-core>=1.6.3",
+    "langchain-openai>=1.6.2",
+    "exa-py>=2.20.0",
+    "fastapi>=0.115.0",
+    "uvicorn>=0.34.0",
+    "pydantic>=2.10.0",
+    "requests>=2.32.0",
+    "PyGithub>=2.5.0",
+    "mcp[cli]>=2.2.0",
+    "python-dotenv>=1.0.1",
+    "pytest>=8.3.0",
+    "pytest-asyncio>=0.24.0",
+]
+
+[tool.hatch.build.targets.wheel]
+include = ["src", "server.py", "mock_data.json"]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
