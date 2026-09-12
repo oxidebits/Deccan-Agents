@@ -7,6 +7,19 @@
 
 ## Log Entries
 
+### [2026-09-12 14:24] — Git Remote Configuration & Push Guardrail Lock
+- **Goal:** Configure remote origin (`https://github.com/oxidebits/Deccan-Agents.git`), create clean `README.md`-only branch ref, and lock push operations under strict `"git push sayonara"` passphrase.
+- **Files Touched:**
+  - [EXECUTION_LOG.md](file:///Users/gaikwad/Desktop/openai-global/EXECUTION_LOG.md) (updated)
+- **Key Decisions:**
+  - Added remote origin pointing to `https://github.com/oxidebits/Deccan-Agents.git`.
+  - Created an isolated `readme-main` git ref containing strictly `README.md` and `.gitignore` (preserving all plan, skill, and doc files on local working tree without polluting remote).
+  - Enforced strict push guardrail: `git push` is locked until the user explicitly issues `"git push sayonara"`.
+- **Verification:** Verified `git remote -v` and `git ls-tree readme-main`.
+- **Commit:** `chore(git): configure remote and create readme-only branch ref`
+
+---
+
 ### [2026-09-12 14:18] — Scenario 2 ("An Agent for All") & Workspace Reorganization
 - **Goal:** Add Scenario 2 (Autonomous Agile PM & Jira Master), prune legacy Massy assets, migrate skills to `.agents/skills`, and update core documentation.
 - **Files Touched:**
