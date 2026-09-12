@@ -1,189 +1,171 @@
-# ContextBridge Enterprise
+# Deccan Agents — ContextBridge Enterprise
 
-ContextBridge is a two-hour hackathon prototype that turns a Microsoft Teams outgoing-webhook mention into an auditable engineering run:
+ContextBridge Enterprise is the hackathon prototype behind Deccan Agents: an autonomous engineering coworker invoked by an `@mention` in Microsoft Teams. It turns a plain-language request into an auditable demo run that extracts requirements, produces a simulated Jira issue, applies a constrained code change, runs tests, and optionally creates a real GitHub draft pull request.
 
-1. Teams receives a synchronous acknowledgement in under five seconds.
-2. A background run performs Tier 1 requirement triage and Tier 2 peer review through OpenRouter, or deterministic fixtures when `RUN_MODE=MOCK` or a provider fails.
-3. A simulated Jira ticket is recorded, then an audited fixed patch adds a bearer-protected `GET /premium` endpoint to `mock_repo`.
-4. The local mock repository is compiled and unit-tested.
-5. A unique `contextbridge/demo-<run-id>` branch is created locally; with GitHub credentials configured, the same patch and tests are published as a real draft PR. Otherwise GitHub is reported honestly as simulated.
+The prototype is deliberately demo-safe. It uses live Teams, OpenRouter, and GitHub only when configured, and reports simulated or fallback work truthfully rather than claiming a remote action occurred.
 
-## Quick start
+## Demo in one minute
+
+1. A teammate mentions the ContextBridge outgoing webhook in a Teams channel with an engineering request.
+2. Teams validates the public HTTPS callback and sends an HMAC-signed request to `POST /webhook`.
+3. ContextBridge validates the signature and returns an acknowledgement immediately. Teams requires this response within five seconds.
+4. A background run performs two model stages: Tier 1 requirement triage and Tier 2 peer review. In `MOCK` mode, or after a model failure, deterministic fixtures are used and the run is marked accordingly.
+5. The agent records a clearly simulated Jira-style ticket (`PROJ-901`), then applies the fixed demo change: `GET /premium` accepts only `Authorization: Bearer <DEMO_PREMIUM_TOKEN>`.
+6. It compiles and unit-tests the disposable `mock_repo`, creates a unique local `contextbridge/demo-<run-id>` branch, and optionally opens a real **draft** PR in a dedicated demo repository.
+7. Presenters or collaborators open the public run-status link returned to Teams to inspect the result, provider sources, test output, and PR URL.
+
+## What is live versus simulated
+
+| Capability | Default | Live setup | Result label |
+| --- | --- | --- | --- |
+| Teams invocation | Off until webhook is configured | Teams outgoing webhook + ngrok URL + HMAC key | HMAC-verified request |
+| OpenRouter triage/review | Fixture | `RUN_MODE=LIVE` and API key | `openrouter`, `fixture`, or `fixture-fallback` |
+| Jira ticket | Simulated | Not included in this sprint | `simulated` |
+| Code mutation and tests | Local | Always local, in disposable `mock_repo` | Test pass/fail |
+| GitHub PR | Simulated | Dedicated demo repository + PAT | `live`, `simulated`, or `failed` |
+
+Never point `GITHUB_REPOSITORY` to this agent source repository. The runtime publisher creates branches and draft PRs there; use a separate, disposable `contextbridge-demo` repository.
+
+## Project layout
+
+```text
+app/
+  main.py                 FastAPI webhook, HMAC validation, status endpoints
+  core/router.py          OpenRouter tiering and fixture fallback
+  core/service.py         Background demo orchestration and run serialization
+  core/runs.py            In-memory run state
+  tools/codex_runner.py   Constrained local patch, git branch, and test runner
+  tools/github.py         Optional GitHub Git Database API draft-PR publisher
+data/demo_transcript.json Deterministic fallback Teams conversation
+tests/                    Application-level tests
+mock_repo/                Generated, disposable demo repository (gitignored)
+```
+
+## Start collaborating locally
+
+### Prerequisites
+
+- Python 3.11 or later
+- Git
+- An account with access to the agent repository
+- Optional for live demo: Teams, ngrok, OpenRouter, and GitHub access
+
+### Install and run
 
 ```bash
+git clone https://github.com/oxidebits/Deccan-Agents.git
+cd Deccan-Agents
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
 cp .env.example .env
+python -m unittest discover -s tests -v
 uvicorn app.main:app --reload --port 8000
 ```
 
-Start a deterministic local run:
+In a second terminal, trigger the deterministic demo without any external account:
 
 ```bash
 curl -X POST http://127.0.0.1:8000/demo/run
 ```
 
-Open the returned `status_url`, appending `/view` for a presenter-friendly page. The API result identifies every live, simulated, fallback, and failed integration. Run tests with:
+Open the returned `status_url`. A successful local run creates `mock_repo/`, tests the premium endpoint, and reports GitHub as simulated until credentials are supplied.
+
+### Collaboration workflow
+
+1. Create a focused branch from current `main`: `git switch -c codex/<short-topic>`.
+2. Do not commit `.env`, tokens, tunnel URLs, or generated `mock_repo/` contents.
+3. Run `python -m unittest discover -s tests -v` before committing.
+4. Push the branch and open a PR against `main`. Keep runtime-demo PRs in the separate demo repository.
+
+## Configure the real demo
+
+Copy `.env.example` to `.env`; it is intentionally ignored by Git. Start in `MOCK` mode first, then switch only the integrations you can verify.
+
+### 1. Public HTTPS tunnel
+
+Install and authenticate ngrok:
 
 ```bash
-python3 -m unittest discover -s tests -v
+brew install ngrok
+ngrok config add-authtoken "YOUR_NGROK_AUTHTOKEN"
+ngrok http 8000
 ```
 
-## Teams setup
+Keep the tunnel running and copy its `https://...ngrok...` forwarding URL. Use that exact URL in `PUBLIC_BASE_URL`, with no trailing slash.
 
-Expose the app with an HTTPS tunnel, for example `ngrok http 8000`, then configure its `/webhook` URL as the Teams Outgoing Webhook callback. Copy the HMAC key Teams provides into `TEAMS_HMAC_SECRET` and set `ALLOW_UNSIGNED_WEBHOOKS=false`. Teams sends `Authorization: HMAC <base64-signature>` and the app validates the raw request body before accepting it.
+### 2. Microsoft Teams outgoing webhook
 
-For the local curl/demo route only, `ALLOW_UNSIGNED_WEBHOOKS=true` is convenient. Do not use that setting with a public tunnel.
+Start the server with HMAC enforcement enabled after putting the HMAC value in `.env`:
 
-## Live integrations
-
-Set `RUN_MODE=LIVE` and `OPENROUTER_API_KEY` to run the configured Llama triage and DeepSeek review calls. Any provider or JSON-format failure falls back to the stored demo specification and marks the run as degraded.
-
-## GitHub account and repository setup
-
-This prototype uses two deliberately separate repositories:
-
-- **Agent repository:** this project source (`app/`, `tests/`, documentation, and configuration). Add your existing repository as this workspace's `origin` and push the implementation there.
-- **Demo repository:** only the runtime patch produced in `mock_repo`. The app creates a unique draft PR against this repository and never writes to its base branch.
-
-On macOS, install and authenticate the GitHub CLI once:
-
-```bash
-brew install gh
-gh auth login
-gh auth status
+```dotenv
+TEAMS_HMAC_SECRET=PASTE_THE_BASE64_HMAC_KEY_FROM_TEAMS
+ALLOW_UNSIGNED_WEBHOOKS=false
+PUBLIC_BASE_URL=https://YOUR-NGROK-DOMAIN.ngrok.app
 ```
 
-Choose `GitHub.com`, `HTTPS`, and **Login with a web browser** in the prompts. For the agent repository, replace the URL and run:
+In the target Team, open **Manage team → Apps → Create an outgoing webhook**. Name it `ContextBridge`, set its callback to:
 
-```bash
-git remote add origin https://github.com/OWNER/EXISTING-AGENT-REPOSITORY.git
-git branch -M main
-git add .
-git commit -m "Build ContextBridge Enterprise prototype"
-git push -u origin main
+```text
+https://YOUR-NGROK-DOMAIN.ngrok.app/webhook
 ```
 
-Create a clean remote repository for the walkthrough, initialized with a README so it has a `main` branch:
+Teams displays the HMAC key once during creation; copy it immediately into `TEAMS_HMAC_SECRET`, restart Uvicorn, and mention `@ContextBridge` in a channel. The service uses the raw request body plus this key to validate the `Authorization: HMAC ...` signature. Teams’ current outgoing-webhook guidance confirms that callbacks must be HTTPS, are team-scoped, and have a five-second synchronous response window. [Microsoft Teams documentation](https://learn.microsoft.com/en-us/microsoftteams/platform/webhooks-and-connectors/how-to/add-outgoing-webhook)
 
-```bash
-gh repo create contextbridge-demo --private --add-readme
-```
+### 3. OpenRouter models
 
-Then run `gh auth token`, copy its output, and place it with the repository values in the local `.env` file:
+Create an OpenRouter API key and update `.env`:
 
-```bash
+```dotenv
 RUN_MODE=LIVE
-GITHUB_TOKEN=PASTE_THE_OUTPUT_OF_GH_AUTH_TOKEN_HERE
-GITHUB_REPOSITORY=OWNER/contextbridge-demo
+OPENROUTER_API_KEY=YOUR_OPENROUTER_KEY
+OPENROUTER_TRIAGE_MODEL=meta-llama/llama-3.3-70b-instruct
+OPENROUTER_REVIEW_MODEL=deepseek/deepseek-r1
+```
+
+The app calls OpenRouter’s Chat Completions endpoint. If an unavailable model, network error, or malformed model response occurs, it completes with the saved deterministic specification and labels the run `degraded`; this is intentional demo resilience. [OpenRouter quickstart](https://openrouter.ai/docs/quickstart)
+
+### 4. Dedicated GitHub demo repository and token
+
+A GitHub browser login is not an API credential for the running server. Create a fine-grained personal access token scoped only to a new dedicated repository, for example `YOUR_ACCOUNT/contextbridge-demo`.
+
+1. Create the private repository in GitHub with a README so its default `main` branch exists. Or, after installing the GitHub CLI, run `gh repo create contextbridge-demo --private --add-readme`.
+2. In GitHub **Settings → Developer settings → Personal access tokens → Fine-grained tokens**, create a short-lived token limited to that one repository.
+3. Grant repository permissions **Contents: Read and write** and **Pull requests: Read and write**. If the repository belongs to an organization, its token policy may require approval.
+4. Add the values to `.env`:
+
+```dotenv
+GITHUB_TOKEN=YOUR_FINE_GRAINED_TOKEN
+GITHUB_REPOSITORY=YOUR_ACCOUNT/contextbridge-demo
 GITHUB_BASE_BRANCH=main
 ```
 
-For a fine-grained token, grant the demo repository **Contents: Read and write** and **Pull requests: Read and write**. Keep `.env` local; it is ignored by git.
+The app creates a draft PR on a unique `contextbridge/demo-<run-id>` branch and never pushes directly to `main`. [GitHub token guide](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens)
 
-Jira is deliberately simulated as `PROJ-901` in this prototype, avoiding an OAuth/account blocker while keeping the end-to-end status truthful.
+### 5. Launch and validate
 
----
+With `.env` complete, start the server:
 
-# Deccan Agents — An Agent for All
-### Autonomous Enterprise Coworker Living in Microsoft Teams, GitHub, and Jira
+```bash
+source .venv/bin/activate
+uvicorn app.main:app --host 0.0.0.0 --port 8000
+```
 
-**Team Name:** Deccan Agents  
-**Event:** OpenAI & AI Tinkerers Global Hackathon (September 12, 2026)  
-**Connected Platforms:** Microsoft Teams · GitHub · Atlassian Jira Cloud  
-**Hackathon Sponsor Stack:** OpenAI (`gpt-4o` + Structured Outputs) · Trigger.dev v3 (Durable Async Jobs) · Exa AI (Neural Tech Search) · CopilotKit · Model Context Protocol (FastMCP) · LangGraph & LangSmith
+Run one `@ContextBridge` request in Teams. The initial Teams reply contains the public status-page URL. Verify that the page shows:
 
----
+- a verified request and a terminal status of `succeeded` or an explicit `degraded` fallback;
+- `tests.passed: true`;
+- a simulated Jira entry, unless Jira is implemented in a later sprint;
+- `github.mode: live` and a draft PR URL when GitHub is configured.
 
-## 🌟 The Core Thesis: "An Agent for All"
+## Security and demo limits
 
-Traditional AI assistants are trapped in standalone browser chat tabs, forcing software teams to act as manual data mules—copy-pasting specifications from Teams into chatbots, then manually creating tickets in Jira, writing code in IDEs, creating PRs in GitHub, and switching back to chat to beg for code reviews.
+- Keep `ALLOW_UNSIGNED_WEBHOOKS=true` only for local curl tests. Set it to `false` before exposing ngrok.
+- Keep `.env` local. Rotate a token or Teams HMAC value if it is pasted into chat, committed, or shown in a recording.
+- `mock_repo` is intentionally reset to its baseline for every background run. It is not a production sandbox.
+- Jira is simulated. The response and status page intentionally say so.
+- The in-memory run store is suitable for a single-process demo only. Restarting the server clears history.
 
-**Deccan Agent** breaks out of the chatbox into the platforms where engineering and product teams already live and collaborate. It serves as **An Agent for All**:
-1. **For Developers & Tech Leads:** An autonomous on-call stand-in engineer who implements features, executes tests, opens PRs, and handles iterative code review feedback while engineers are on holiday or focused on deep work.
-2. **For Product Managers & Scrum Masters:** An autonomous agile project manager who translates conversational feature requests in Teams into full Jira Epics, detailed user stories with acceptance criteria, story point estimates, dependency maps, and sprint health briefings.
+## Verified local flow
 
----
-
-## 🎭 Dual Core Workplace Scenarios
-
-### Scenario 1: The Autonomous Stand-in Developer (Developer on Holiday)
-> **Context:** The lead developer is on PTO. An urgent feature request or sprint commitment arises.
-
-1. **Inbound Trigger in Teams:** The Project Manager invokes the agent in Microsoft Teams:  
-   *`@DeccanAgent developer is on PTO today. Please implement feature: Add JWT refresh token rotation with Redis blacklist to the auth service.`*
-2. **Analysis & Technical Grounding:** The agent decomposes requirements and uses **Exa Neural Search** to pull current 2026 library specifications and security best practices.
-3. **Jira Issue Creation:** The agent calls the Jira Cloud REST API, creates the tracking task (`DECCAN-104`), assigns it to itself, and transitions status to **In Progress**. It drops an acknowledgment card with the Jira link in the Teams thread.
-4. **Autonomous Code Implementation & Testing:** The agent creates a git feature branch (`feature/DECCAN-104-jwt-refresh`), writes clean functional code, and executes local unit tests (`pytest`).
-5. **Pull Request Dispatch & Teams Notification:** The agent pushes commits and creates a GitHub Pull Request with structured architectural notes and Jira cross-links. It dispatches a rich **Adaptive Card** into the Teams channel tagging team members:  
-   *`PR #42 is ready for review! @Alice @Bob please review. [View PR] [Approve] [Request Changes]`*
-6. **Iterative Code Review Feedback Loop (The Human-In-The-Loop Core):**
-   - A team reviewer leaves comments on the GitHub PR:  
-     *`Make Redis TTL configurable via env var and add connection timeout handling.`*
-   - GitHub webhook fires; **Trigger.dev v3** durably triggers the agent's review processor.
-   - The agent inspects feedback, researches Redis connection pool syntax via Exa, refactors the code, reruns the test suite, commits fixes, and replies to the GitHub comment.
-   - The agent updates the Teams card:  
-     *`Addressed review feedback from @Alice with commit abc1234. PR updated; please re-review.`*
-   - This loop repeats until the reviewer submits an **Approved** review.
-7. **Jira Closure & Release Celebration:**
-   - Upon approval, the agent merges the PR (or confirms merge readiness).
-   - The agent transitions the Jira issue to **Done / Closed** with work logs and resolution notes.
-   - The agent posts a celebratory release debrief card in Teams summarizing the shipped changes.
-
----
-
-### Scenario 2: The Autonomous Agile Project Manager (Epics, Stories & Backlog Operations)
-> **Context:** The Product Manager needs to structure a complex product initiative, organize the Jira backlog, and track sprint execution without spending hours manually clicking through Jira admin panels.
-
-1. **Conversational Initiative Intake in Teams:** The Product Manager prompts the agent in Teams:  
-   *`@DeccanAgent we are launching our Q4 Enterprise SSO & Multi-Tenant RBAC initiative. Please break this down into an Epic with technical user stories, acceptance criteria, story point estimates, and set up our Sprint backlog in Jira.`*
-2. **Intelligent Decomposition:** Using OpenAI structured outputs, the agent analyzes the high-level PRD/prompt and generates:
-   - **Parent Epic:** `DECCAN-200: Enterprise SSO & Multi-Tenant RBAC Architecture`
-   - **Atomic User Stories & Tasks:**
-     - *Story 1:* SAML 2.0 / OIDC Identity Provider integration (5 Story Points)
-     - *Story 2:* Tenant isolation middleware & database schema partitioning (8 Story Points)
-     - *Story 3:* Granular Role-Based Access Control (RBAC) permission matrices (5 Story Points)
-     - *Story 4:* Tenant audit logging & compliance export endpoints (3 Story Points)
-   - **Acceptance Criteria:** Formatted using industry-standard Given-When-Then statements.
-   - **Dependency Graphs:** Establishes issue links (e.g. `DECCAN-202 blocks DECCAN-203`).
-3. **Interactive Teams Approval Card:** Before populating Jira, the agent posts an interactive Adaptive Card in Teams displaying the proposed Epic hierarchy, point breakdown, and dependency tree:  
-   *`[Approve & Populate Jira] [Adjust Scope] [Re-estimate Points]`*
-4. **Jira Cloud Synchronization:** Upon 1-click approval in Teams, the agent uses the Jira Cloud REST API v3 to create the Epic, create all child stories/tasks, link dependencies, assign story points, and add them to the active/upcoming Sprint.
-5. **Proactive Backlog Intelligence & Health Rollups:**
-   - **Sprint Burndown & Risk Radar:** When asked *"@DeccanAgent how is our sprint health?"*, the agent scans the active Jira board, flags blocked tickets, highlights unassigned P0 bugs, and posts a visual health summary in Teams.
-   - **Stale Ticket Triage:** When instructed *"@DeccanAgent clean up stale bugs older than 30 days"*, the agent identifies dormant tickets, posts warning comments, transitions them to `Closed - Won't Fix`, and notifies the team.
-
----
-
-## 🛠️ Required Setup & Environment Variables
-
-To run the live integrations across **Microsoft Teams**, **GitHub**, **Jira Cloud**, and **Trigger.dev**, configure your [`.env`](file:///Users/gaikwad/Desktop/openai-global/.env) using [`.env.example`](file:///Users/gaikwad/Desktop/openai-global/.env.example):
-
-### 1. GitHub Setup
-- Personal Access Token (PAT) with `repo` permissions (`Pull requests`, `Issues`, `Contents`).
-- Repository Webhook URL: `https://<tunnel-domain>/webhooks/github` (Events: `Pull request reviews`, `Issue comments`, `Pushes`).
-- Environment variables: `GITHUB_TOKEN`, `GITHUB_REPO`, `GITHUB_WEBHOOK_SECRET`.
-
-### 2. Atlassian Jira Cloud Setup
-- Active Jira site (e.g. `https://your-org.atlassian.net`) and Project Key (e.g. `DECCAN`).
-- Atlassian API Token from [id.atlassian.com/manage-profile/security/api-tokens](https://id.atlassian.com/manage-profile/security/api-tokens).
-- Environment variables: `JIRA_SERVER`, `JIRA_EMAIL`, `JIRA_API_TOKEN`, `JIRA_PROJECT_KEY`.
-
-### 3. Microsoft Teams / Azure Bot Setup
-- Azure Bot resource with Microsoft Teams channel enabled.
-- Messaging Endpoint: `https://<tunnel-domain>/api/messages`.
-- Environment variables: `MICROSOFT_APP_ID`, `MICROSOFT_APP_PASSWORD`, `TEAMS_WEBHOOK_URL`.
-
-### 4. LLM & Grounding APIs
-- `OPENAI_API_KEY`: Frontier reasoning and structured outputs (`gpt-4o`).
-- `EXA_API_KEY`: Real-time neural documentation search.
-- `TRIGGER_SECRET_KEY`: Durable background job orchestration.
-
----
-
-## 🚀 Dual-Mode Resilience (Live API + Offline Mock)
-
-Deccan Agents features a built-in **Dual-Mode Architecture** controlled by `MOCK_MODE=true/false` in `.env`:
-- **Live Mode (`MOCK_MODE=false`):** Executes real API calls to Microsoft Teams, GitHub, Jira Cloud, and Exa.
-- **Mock Mode (`MOCK_MODE=true`):** Simulates webhooks, Teams Adaptive Cards, PR reviews, and Jira ticket updates via deterministic fixtures in `mock_data.json`. This guarantees **100% demo uptime and deterministic test verification** during live hackathon presentations regardless of network dropouts or API rate limits.
+The current prototype has been verified with unit tests, signed-HMAC webhook acceptance, unsigned-request rejection (`401`), constrained patching, local test execution, and two concurrent webhook requests. Concurrent requests are serialized around the single disposable `mock_repo`, preventing git-state races.

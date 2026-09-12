@@ -31,6 +31,7 @@ class Settings:
     run_mode: str
     teams_hmac_secret: str | None
     allow_unsigned_webhooks: bool
+    public_base_url: str | None
     openrouter_api_key: str | None
     triage_model: str
     review_model: str
@@ -52,6 +53,7 @@ class Settings:
             run_mode=os.getenv("RUN_MODE", "MOCK").upper(),
             teams_hmac_secret=os.getenv("TEAMS_HMAC_SECRET") or None,
             allow_unsigned_webhooks=_as_bool(os.getenv("ALLOW_UNSIGNED_WEBHOOKS", "")),
+            public_base_url=os.getenv("PUBLIC_BASE_URL", "").rstrip("/") or None,
             openrouter_api_key=os.getenv("OPENROUTER_API_KEY") or None,
             triage_model=os.getenv(
                 "OPENROUTER_TRIAGE_MODEL", "meta-llama/llama-3.3-70b-instruct"
@@ -62,4 +64,3 @@ class Settings:
             github_repository=os.getenv("GITHUB_REPOSITORY") or None,
             github_base_branch=os.getenv("GITHUB_BASE_BRANCH", "main"),
         )
-

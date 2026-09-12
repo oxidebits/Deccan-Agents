@@ -40,6 +40,11 @@ def normalize_transcript(payload: dict[str, object]) -> str:
     return text if len(text) >= 25 else load_demo_transcript(settings.project_root)
 
 
+def status_url(run_id: str) -> str:
+    path = f"/runs/{run_id}/view"
+    return f"{settings.public_base_url}{path}" if settings.public_base_url else path
+
+
 @app.get("/health")
 def health() -> dict[str, str]:
     return {"status": "healthy", "mode": settings.run_mode}
@@ -63,7 +68,7 @@ async def handle_teams_webhook(request: Request, background_tasks: BackgroundTas
             "type": "message",
             "text": (
                 "🤖 ContextBridge accepted this request and started a background run. "
-                f"Demo status: `/runs/{run_id}`."
+                f"Demo status: {status_url(run_id)}"
             ),
         }
     )
@@ -74,7 +79,7 @@ def start_demo(background_tasks: BackgroundTasks) -> dict[str, str]:
     """Local-only demo trigger; it bypasses Teams authentication."""
     run_id = service.start(load_demo_transcript(settings.project_root))
     background_tasks.add_task(service.execute, run_id)
-    return {"run_id": run_id, "status_url": f"/runs/{run_id}"}
+    return {"run_id": run_id, "status_url": status_url(run_id)}
 
 
 @app.get("/runs/{run_id}")
@@ -95,4 +100,3 @@ def view_run(run_id: str) -> HTMLResponse:
         f"<html><body style='font-family:ui-monospace,monospace;max-width:980px;margin:40px auto'>"
         f"<h1>ContextBridge run {html.escape(run_id)}</h1><pre>{rendered}</pre></body></html>"
     )
-

@@ -3,7 +3,7 @@ import hashlib
 import hmac
 import unittest
 
-from app.main import normalize_transcript, verify_teams_hmac
+from app.main import normalize_transcript, status_url, verify_teams_hmac
 
 
 class MainTests(unittest.TestCase):
@@ -17,6 +17,9 @@ class MainTests(unittest.TestCase):
 
     def test_hmac_allows_local_demo_when_not_configured(self) -> None:
         self.assertIsInstance(verify_teams_hmac(None, b"payload"), bool)
+
+    def test_status_url_is_available_without_a_public_tunnel(self) -> None:
+        self.assertEqual(status_url("example-run"), "/runs/example-run/view")
 
 
 if __name__ == "__main__":
